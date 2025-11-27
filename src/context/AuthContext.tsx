@@ -27,7 +27,7 @@ export interface User {
 interface RegisterPayload {
     full_name: string;
     username: string;
-    email?: string;
+    email: string;
     phone: string;
     password: string;
 }

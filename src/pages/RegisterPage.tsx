@@ -86,8 +86,9 @@ export default function RegisterPage() {
             value={form.email}
             onChange={handleChange}
             type="email"
-            placeholder="Email (Opsional)"
+            placeholder="Email"
             className="w-full border border-gray-300 px-4 py-3 rounded-lg bg-gray-50 focus:ring-2 focus:ring-red-400 outline-none"
+            required
           />
 
           <input

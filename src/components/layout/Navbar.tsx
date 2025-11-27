@@ -112,6 +112,7 @@ export const Navbar: React.FC = () => {
                             <div className="h-9 w-9 rounded-full bg-gray-800 text-white flex items-center justify-center font-semibold">
                                 {getInitial(user.full_name)}
                             </div>
+                            
                             <span
                                 className={`text-sm ${
                                     isScrolled ? "text-black" : "text-white"

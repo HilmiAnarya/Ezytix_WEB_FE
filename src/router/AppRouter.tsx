@@ -7,6 +7,7 @@ import DashboardPage from "../pages/admin/DashboardPage";
 
 import ProtectedRoute from "./ProtectedRoute";
 import AdminRoute from "./AdminRoute";
+import ProfilePage from "../pages/ProfilePage";
 
 export default function AppRouter() {
   return (
@@ -16,6 +17,7 @@ export default function AppRouter() {
       <Route path="/register" element={<RegisterPage />} />
 
       <Route element={<ProtectedRoute />}>
+        <Route path="/profile" element={<ProfilePage />} />
         {/* nanti tambah */}
       </Route>
 
