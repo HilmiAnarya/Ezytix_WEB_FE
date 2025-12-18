@@ -2,12 +2,14 @@
 import React from "react";
 import { SearchBox } from "./SearchBox";
 
+import Hero from "../../assets/images/hero-bg.jpg";
+
 export const HeroSection: React.FC = () => {
     return (
         <section
             className="relative w-full h-[500px] flex items-center justify-center text-center"
             style={{
-                backgroundImage: "url('../../assets/images/hero-bg.jpg')",
+                backgroundImage: `url(${Hero})`,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
             }}
