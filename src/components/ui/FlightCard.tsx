@@ -30,16 +30,17 @@ const formatDate = (isoString: string) => {
 // --- COMPONENT ---
 interface Props {
   flight: Flight;
+  // 🔥 UPDATE 1: Tambahkan prop onSelect agar Parent bisa mengontrol logic
+  onSelect: () => void;
 }
 
-export const FlightCard: React.FC<Props> = ({ flight }) => {
+export const FlightCard: React.FC<Props> = ({ flight, onSelect }) => {
   const [isOpen, setIsOpen] = useState(false);
   
-  // 🔥 FIX CRITICAL 1: Safety Check untuk Flight Classes (Harga)
-  // Gunakan optional chaining (?.) agar tidak crash jika array kosong/null
+  // Safety Check untuk Flight Classes (Harga)
   const displayPrice = flight.flight_classes?.[0]?.price || "0";
 
-  // 🔥 FIX CRITICAL 2: Pastikan legs adalah array
+  // Pastikan legs adalah array
   const legs = flight.flight_legs || []; 
 
   return (
@@ -57,7 +58,6 @@ export const FlightCard: React.FC<Props> = ({ flight }) => {
             {/* 1. MASKAPAI */}
             <div className="flex items-center gap-4 w-full md:w-1/4">
                 <div className="w-12 h-12 flex items-center justify-center p-1 bg-white border border-gray-100 rounded-lg shadow-sm">
-                   {/* Safety Check Logo */}
                    {flight.airline?.logo_url ? (
                      <img 
                        src={flight.airline.logo_url} 
@@ -105,14 +105,19 @@ export const FlightCard: React.FC<Props> = ({ flight }) => {
                 </div>
             </div>
 
-            {/* 3. HARGA */}
+            {/* 3. HARGA & TOMBOL PILIH */}
             <div className="flex flex-row md:flex-col items-center md:items-end justify-between w-full md:w-1/4 gap-1">
                 <div className="text-right">
                     <p className="text-lg font-bold text-red-600">{formatCurrency(displayPrice)}</p>
                     <p className="text-xs text-gray-400">/pax</p>
                 </div>
+                
+                {/* 🔥 UPDATE 2: Panggil onSelect saat diklik */}
                 <button 
-                  onClick={(e) => { e.stopPropagation(); alert(`Booking ${flight.flight_code}`); }}
+                  onClick={(e) => { 
+                    e.stopPropagation(); // Mencegah accordion terbuka
+                    onSelect(); // Trigger logic di Parent
+                  }}
                   className="bg-red-600 text-white px-6 py-2 rounded-xl font-bold text-sm hover:bg-red-700 transition"
                 >
                     Pilih
@@ -133,7 +138,6 @@ export const FlightCard: React.FC<Props> = ({ flight }) => {
         <div className="bg-gray-50 border-t border-gray-100 p-4 md:p-6 animate-fadeIn">
             <div className="max-w-3xl mx-auto">
                 
-                {/* 🔥 FIX CRITICAL 3: Map pada variabel 'legs' yang sudah pasti array */}
                 {legs.length > 0 ? legs.map((leg, idx) => (
                     <div key={leg.id} className="relative">
                         

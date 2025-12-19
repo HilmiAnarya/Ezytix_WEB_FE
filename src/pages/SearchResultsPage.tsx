@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom"; // Tambah useNavigate
 import { SearchResultsNavbar } from "../components/layout/SearchResultsNavbar";
 import { SearchSummary } from "../components/sections/SearchSummary";
 import { FilterBar } from "../components/sections/FilterBar";
@@ -7,13 +7,18 @@ import { FlightCard } from "../components/ui/FlightCard";
 import { flightService } from "../services/flightService";
 import { airportService } from "../services/airportService"; 
 import { Flight } from "../types/api";
-import { FiAlertCircle, FiSearch } from "react-icons/fi";
+import { FiAlertCircle, FiSearch, FiCheckCircle } from "react-icons/fi"; // Tambah icon
 
 const SearchResultsPage: React.FC = () => {
-    const [searchParams] = useSearchParams();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const navigate = useNavigate();
     
     // --- STATE DATA ---
     const [flights, setFlights] = useState<Flight[]>([]);
+    
+    // State khusus untuk menyimpan data tiket pergi yang SUDAH dipilih (untuk ditampilkan saat cari tiket pulang)
+    const [selectedOutboundFlight, setSelectedOutboundFlight] = useState<Flight | null>(null);
+    
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -25,7 +30,8 @@ const SearchResultsPage: React.FC = () => {
         destinationCity: "Memuat...",
         dateFormatted: "...",
         passengers: 1,
-        seatClass: "Economy"
+        seatClass: "Economy",
+        isReturnPhase: false // Flag untuk UI update
     });
 
     // --- FETCHING LOGIC ---
@@ -35,40 +41,66 @@ const SearchResultsPage: React.FC = () => {
             setError(null);
 
             // 1. Ambil Parameter dari URL
-            const originId = searchParams.get("origin");
-            const destinationId = searchParams.get("destination");
+            const originIdStr = searchParams.get("origin");
+            const destinationIdStr = searchParams.get("destination");
+            const departureDateStr = searchParams.get("departure_date");
             
-            // 🔥 UPDATE DI SINI: Ambil 'departure_date' dari URL browser
-            const departureDateStr = searchParams.get("departure_date"); 
-            
+            // Parameter Round Trip
+            const returnDateStr = searchParams.get("return_date");
+            const selectedOutboundIdStr = searchParams.get("selected_outbound_flight_id");
+
             const passengers = Number(searchParams.get("passengers")) || 1;
             const seatClass = searchParams.get("seat_class") || "economy";
 
-            // Validasi Dasar (Cek departureDateStr)
-            if (!originId || !destinationId || !departureDateStr) {
+            // Validasi Dasar
+            if (!originIdStr || !destinationIdStr || !departureDateStr) {
                 setError("Parameter pencarian tidak lengkap.");
                 setLoading(false);
                 return;
             }
 
+            // 2. Tentukan Fase: Apakah sedang mencari tiket pulang?
+            // Syarat: Ada tanggal pulang DAN user sudah memilih tiket pergi (ID-nya ada di URL)
+            const isReturnPhase = !!(returnDateStr && selectedOutboundIdStr);
+
             try {
+                // 3. LOGIC SWAPPING (The Brain) 🧠
+                // Jika fase pulang, tukar Origin <-> Destination dan gunakan Tanggal Pulang
+                const fetchOriginId = isReturnPhase ? Number(destinationIdStr) : Number(originIdStr);
+                const fetchDestinationId = isReturnPhase ? Number(originIdStr) : Number(destinationIdStr);
+                const fetchDateStr = isReturnPhase ? returnDateStr! : departureDateStr;
+
                 // --- PARALLEL FETCHING ---
-                const [airportsData, flightsData] = await Promise.all([
+                // Siapkan promise array
+                const promises: Promise<any>[] = [
                     airportService.getAirports(), 
                     flightService.searchFlights({ 
-                        originAirportId: Number(originId),
-                        destinationAirportId: Number(destinationId),
-                        departureDate: new Date(departureDateStr), // Pass Date Object
+                        originAirportId: fetchOriginId,
+                        destinationAirportId: fetchDestinationId,
+                        departureDate: new Date(fetchDateStr), 
                         passengerCount: passengers,
                         seatClass: seatClass as any
                     })
-                ]);
+                ];
 
-                // --- 2. SET HEADER CONTEXT ---
-                const originAirport = airportsData.find(a => a.id === Number(originId));
-                const destAirport = airportsData.find(a => a.id === Number(destinationId));
+                // Jika sedang fase pulang, kita perlu fetch detail tiket pergi yang sudah dipilih
+                if (isReturnPhase) {
+                    promises.push(flightService.getFlightById(Number(selectedOutboundIdStr)));
+                }
 
-                const dateObj = new Date(departureDateStr);
+                // Eksekusi semua request
+                const results = await Promise.all(promises);
+                
+                const airportsData = results[0];
+                const flightsData = results[1];
+                // Hasil fetch flight detail ada di index 2 (jika ada)
+                const outboundFlightData = isReturnPhase ? results[2] : null;
+
+                // --- 4. SET HEADER CONTEXT ---
+                const originAirport = airportsData.find((a: any) => a.id === fetchOriginId);
+                const destAirport = airportsData.find((a: any) => a.id === fetchDestinationId);
+
+                const dateObj = new Date(fetchDateStr);
                 const dateFormatted = dateObj.toLocaleDateString('id-ID', { 
                     weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' 
                 });
@@ -80,11 +112,13 @@ const SearchResultsPage: React.FC = () => {
                     destinationCity: destAirport?.city_name || "Unknown",
                     dateFormatted: dateFormatted,
                     passengers: passengers,
-                    seatClass: seatClass.charAt(0).toUpperCase() + seatClass.slice(1) 
+                    seatClass: seatClass.charAt(0).toUpperCase() + seatClass.slice(1),
+                    isReturnPhase: isReturnPhase
                 });
 
-                // --- 3. SET FLIGHTS DATA ---
+                // --- 5. SET DATA ---
                 setFlights(flightsData);
+                setSelectedOutboundFlight(outboundFlightData);
 
             } catch (err) {
                 console.error("Error fetching search data:", err);
@@ -95,9 +129,34 @@ const SearchResultsPage: React.FC = () => {
         };
 
         fetchData();
-    }, [searchParams]); // Re-run effect kalau URL berubah
+    }, [searchParams]); 
 
-    // Handler Placeholder
+
+    // --- HANDLER: SAAT USER MEMILIH TIKET ---
+    const handleSelectFlight = (flight: Flight) => {
+        const returnDateStr = searchParams.get("return_date");
+        const selectedOutboundIdStr = searchParams.get("selected_outbound_flight_id");
+        
+        // Skenario 1: User baru pilih tiket pergi, dan dia merencanakan pulang pergi (returnDate ada)
+        if (returnDateStr && !selectedOutboundIdStr) {
+            // Update URL untuk memicu useEffect (masuk fase Return)
+            const newParams = new URLSearchParams(searchParams);
+            newParams.set("selected_outbound_flight_id", flight.id.toString());
+            
+            setSearchParams(newParams);
+            window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll ke atas agar user sadar halaman berubah
+        } 
+        // Skenario 2: User memilih tiket pulang (atau ini tiket sekali jalan/one-way) -> Lanjut Booking
+        else {
+            const outboundId = selectedOutboundIdStr || flight.id; // Jika one-way, flight.id adalah outbound
+            const inboundId = selectedOutboundIdStr ? flight.id : null; // Jika return phase, flight.id adalah inbound
+
+            // Navigasi ke halaman Booking
+            navigate(`/booking?outbound_id=${outboundId}&inbound_id=${inboundId || ''}&passengers=${headerContext.passengers}&seat_class=${searchParams.get("seat_class")}`);
+        }
+    };
+
+
     const handleFilterChange = (filters: any) => console.log("Filter:", filters);
     const handleEditSearch = () => console.log("Edit Search Modal Open");
 
@@ -107,6 +166,7 @@ const SearchResultsPage: React.FC = () => {
 
             <div className="pt-24 max-w-5xl mx-auto px-4 md:px-6 flex flex-col gap-6">
                 
+                {/* 1. SUMMARY BAR */}
                 <SearchSummary 
                     originCode={headerContext.originCode}
                     originCity={headerContext.originCity}
@@ -118,13 +178,42 @@ const SearchResultsPage: React.FC = () => {
                     onEditSearch={handleEditSearch}
                 />
 
-                <div className="sticky top-20 z-20 bg-gray-50/95 backdrop-blur-sm py-2 -mx-4 px-4 md:mx-0 md:px-0">
+                {/* 2. SELECTED OUTBOUND FLIGHT (Hanya Muncul saat Fase Pulang) */}
+                {headerContext.isReturnPhase && selectedOutboundFlight && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-center justify-between shadow-sm">
+                        <div className="flex items-center gap-4">
+                            <FiCheckCircle className="text-2xl text-blue-600" />
+                            <div>
+                                <p className="text-xs font-bold text-blue-600 uppercase tracking-wider">Penerbangan Pergi Terpilih</p>
+                                <div className="flex items-center gap-2 font-bold text-gray-800">
+                                    <span>{selectedOutboundFlight.airline.name}</span>
+                                    <span className="text-gray-400">•</span>
+                                    <span>{selectedOutboundFlight.departure_time.split('T')[1].substring(0,5)}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button 
+                            onClick={() => window.history.back()}
+                            className="text-sm text-blue-600 font-semibold hover:underline"
+                        >
+                            Ubah
+                        </button>
+                    </div>
+                )}
+
+                {/* 3. FILTER & HEADER FASE */}
+                <div className="sticky top-20 z-20 bg-gray-50/95 backdrop-blur-sm py-2 -mx-4 px-4 md:mx-0 md:px-0 space-y-2">
+                    {/* Judul Fase agar user tidak bingung */}
+                    <h2 className="text-lg font-bold text-gray-800">
+                        {headerContext.isReturnPhase ? "Pilih Penerbangan Pulang" : "Pilih Penerbangan Pergi"}
+                    </h2>
                     <FilterBar onFilterChange={handleFilterChange} />
                 </div>
 
+                {/* 4. LIST PENERBANGAN */}
                 <div className="flex flex-col gap-4 min-h-[300px]">
                     
-                    {/* STATE: LOADING (Skeleton) */}
+                    {/* LOADING */}
                     {loading && (
                         <>
                             {[1, 2, 3].map((i) => (
@@ -141,22 +230,19 @@ const SearchResultsPage: React.FC = () => {
                         </>
                     )}
 
-                    {/* STATE: ERROR */}
+                    {/* ERROR */}
                     {!loading && error && (
                         <div className="bg-red-50 border border-red-100 rounded-xl p-8 text-center">
                             <FiAlertCircle className="text-4xl text-red-500 mx-auto mb-3" />
                             <h3 className="text-lg font-bold text-red-700">Gagal Memuat Data</h3>
                             <p className="text-red-600 text-sm">{error}</p>
-                            <button 
-                                onClick={() => window.location.reload()} 
-                                className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-bold hover:bg-red-700"
-                            >
+                            <button onClick={() => window.location.reload()} className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-bold hover:bg-red-700">
                                 Coba Lagi
                             </button>
                         </div>
                     )}
 
-                    {/* STATE: EMPTY */}
+                    {/* EMPTY */}
                     {!loading && !error && flights.length === 0 && (
                         <div className="bg-white border border-gray-200 rounded-xl p-12 text-center shadow-sm">
                             <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -164,18 +250,22 @@ const SearchResultsPage: React.FC = () => {
                             </div>
                             <h3 className="text-xl font-bold text-gray-800">Penerbangan Tidak Ditemukan</h3>
                             <p className="text-gray-500 mt-2 max-w-md mx-auto">
-                                Maaf, kami tidak menemukan jadwal penerbangan untuk rute dan tanggal yang Anda pilih. Silakan coba tanggal lain.
+                                Maaf, kami tidak menemukan jadwal penerbangan untuk rute ini.
                             </p>
                         </div>
                     )}
 
-                    {/* STATE: SUCCESS */}
+                    {/* SUCCESS LIST */}
                     {!loading && !error && flights.length > 0 && (
                         flights.map((flight) => (
-                            <FlightCard key={flight.id} flight={flight} />
+                            <FlightCard 
+                                key={flight.id} 
+                                flight={flight} 
+                                // PENTING: Passing handler ini ke komponen FlightCard
+                                onSelect={() => handleSelectFlight(flight)} 
+                            />
                         ))
                     )}
-
                 </div>
             </div>
         </div>

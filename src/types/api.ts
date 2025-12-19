@@ -99,6 +99,14 @@ export interface FlightSearchParams {
   originAirportId: number | null;
   destinationAirportId: number | null;
   departureDate: Date | null; // Object Date JS
+  
+  // --- [NEW] UPDATE UNTUK ROUND TRIP ---
+  returnDate?: Date | null;   // Optional, hanya terisi jika user pilih PP
+  
   passengerCount: number;
   seatClass: 'economy' | 'business' | 'first_class';
+
+  // --- [NEW] CONTEXT STATE ---
+  // Menyimpan ID penerbangan pergi yang sudah dipilih user
+  selectedOutboundFlightId?: number; 
 }
