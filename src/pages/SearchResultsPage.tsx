@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom"; // Tambah useNavigate
 import { SearchResultsNavbar } from "../components/layout/SearchResultsNavbar";

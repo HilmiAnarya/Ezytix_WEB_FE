@@ -1,0 +1,59 @@
+[33mcommit ecf5d7053d1d68692d2e60280821044ab26bc6e3[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Author: HilmiAnarya <hilmidrone@gmail.com>
+Date:   Mon Jan 5 10:47:44 2026 +0700
+
+    unfinished booking historys, and fixing dropdown searchbox
+
+[33mcommit 3c368d9687f3f5d8f6993ec5586bd3bfec29a782[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: HilmiAnarya <hilmidrone@gmail.com>
+Date:   Sat Jan 3 22:30:13 2026 +0700
+
+    adding booking and complete the flow, with success page
+
+[33mcommit 403d2b680e6f247cf57c42f924d3a527c2bc717d[m
+Author: HilmiAnarya <hilmidrone@gmail.com>
+Date:   Fri Dec 19 16:11:17 2025 +0700
+
+    booking logic added
+
+[33mcommit d9301121b81e0f5389d84e787d0404682f7facfe[m
+Author: HilmiAnarya <hilmidrone@gmail.com>
+Date:   Fri Dec 19 13:33:49 2025 +0700
+
+    round-trip add
+
+[33mcommit 065ea765814314867c6be28c47779ed8b640a1cd[m
+Author: HilmiAnarya <hilmidrone@gmail.com>
+Date:   Fri Dec 19 11:16:39 2025 +0700
+
+    fixing search box on landing page, and create search result page
+
+[33mcommit 61009a990d16c3b851be4ccc41d4aabda0b7e16d[m
+Author: HilmiAnarya <hilmidrone@gmail.com>
+Date:   Thu Dec 18 22:33:52 2025 +0700
+
+    search box update
+
+[33mcommit 04d511cda5745c16bcbdb9ac4d705d5f5c36590f[m
+Author: HilmiAnarya <hilmidrone@gmail.com>
+Date:   Thu Nov 27 23:48:03 2025 +0700
+
+    finishing login register on frontend, adding skeleton profile page
+
+[33mcommit d6eb891fd1093fcc1b4f6396578030b8e293d573[m
+Author: HilmiAnarya <hilmidrone@gmail.com>
+Date:   Thu Nov 27 19:55:19 2025 +0700
+
+    fix UI login register, not tested Login Regist yet
+
+[33mcommit e53d5809faac7e168d096c3131d9fdab5cdb05b6[m
+Author: HilmiAnarya <hilmidrone@gmail.com>
+Date:   Tue Nov 25 18:52:26 2025 +0700
+
+    fix responsive navbar and ongoing login register
+
+[33mcommit 9c605a6e790dacf2da9f12f9c13b925f3a281a0c[m
+Author: HilmiAnarya <hilmidrone@gmail.com>
+Date:   Mon Nov 24 17:32:17 2025 +0700
+
+    first commit

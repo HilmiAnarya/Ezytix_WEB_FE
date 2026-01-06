@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState } from "react";
-import { FiChevronDown, FiArrowRight, FiCheckCircle, FiXCircle } from "react-icons/fi";
+import { FiChevronDown, FiArrowRight, FiCheckCircle, FiXCircle, FiDownload } from "react-icons/fi";
 import { Booking } from "../../../types/booking";
 
 interface Props {
@@ -33,7 +34,7 @@ export const HistoryBookingCard: React.FC<Props> = ({ data }) => {
             weekday: "short",
             day: "numeric",
             month: "short",
-            year: "numeric",
+            year: "2-digit",
         });
     };
 
@@ -50,102 +51,138 @@ export const HistoryBookingCard: React.FC<Props> = ({ data }) => {
 
     // Logic Status untuk Dropdown
     const isCancelled = data.status === 'cancelled' || data.status === 'failed';
+    // const isSuccess = data.status === 'paid' || data.status === 'issued'; // Asumsi status sukses
 
     return (
-        <div className="bg-white border border-gray-200 rounded-xl shadow-sm mb-4 overflow-hidden transition-all hover:shadow-md hover:border-gray-300">
+        <div className={`bg-white border border-gray-200 rounded-xl shadow-sm mb-4 overflow-hidden transition-all duration-300 ${isOpen ? "shadow-md border-red-100" : "hover:shadow-md"}`}>
 
             {/* === HEADER CARD === */}
-            <div className="p-5">
+            <div 
+                className={`p-6 relative flex flex-col md:flex-row gap-6 items-stretch ${isCancelled ? "cursor-pointer" : ""}`}
+                onClick={() => isCancelled && setIsOpen(!isOpen)}
+            >
 
-                {/* Row 1: Identitas Penerbangan & INFO KANAN (Harga + Toggle) */}
-                <div className="flex justify-between items-start mb-5">
-
-                    {/* KIRI: Logo + Nama + Kode Penerbangan */}
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 flex items-center justify-center bg-gray-50 rounded-lg p-1 border border-gray-100">
-                            <img
-                                src={data.flight.airline_logo}
-                                alt={data.flight.airline_name}
-                                className="w-full h-full object-contain"
-                            />
-                        </div>
-                        <div>
-                            <h4 className="font-bold text-gray-900 text-sm md:text-base">
-                                {data.flight.airline_name}
-                            </h4>
-                            <p className="text-xs text-gray-500 font-medium mt-0.5">
-                                {data.flight.flight_code} • {formatDate(data.flight.departure_time)}
-                            </p>
-                        </div>
+                {/* KIRI: Logo & Info Penerbangan */}
+                <div className="flex-1 flex gap-5 items-center">
+                    
+                    {/* LOGO */}
+                    <div className="w-14 h-14 flex-shrink-0 bg-white rounded-full border border-gray-100 flex items-center justify-center p-2 shadow-sm">
+                        <img
+                            src={data.flight.airline_logo}
+                            alt={data.flight.airline_name}
+                            className="w-full h-full object-contain"
+                        />
                     </div>
 
-                    {/* KANAN: Harga Total & Lihat Detail */}
-                    <div className="text-right flex flex-col items-end gap-1">
-                        {/* Total Harga */}
-                        <p className="font-bold text-gray-900 text-base md:text-lg">
-                            {formatRupiah(data.total_amount)}
-                        </p>
+                    {/* JADWAL GRID */}
+                    <div className="flex-1 grid grid-cols-3 gap-2">
+                        
+                        {/* COL 1: Origin */}
+                        <div className="flex flex-col items-start min-w-fit">
+                            {/* Airline Name */}
+                            <div className="h-7 mb-2 flex items-center whitespace-nowrap">
+                                <span className="font-medium text-gray-900 text-[15px]">
+                                    {data.flight.airline_name} <span className="text-gray-300 mx-2 font-light">|</span> {data.flight.flight_code}
+                                </span>
+                            </div>
+                            
+                            <p className="text-[15px] font-medium text-gray-900 ">{formatTime(data.flight.departure_time)}</p>
+                            <p className="text-[11px] text-gray-500 mb-0.5">{formatDate(data.flight.departure_time)}</p>
+                            <p className="text-[11px] text-gray-500">{getCode(data.flight.origin)}</p>
+                        </div>
 
-                        {/* Tombol Toggle */}
-                        <button
-                            onClick={() => setIsOpen(!isOpen)}
-                            className="flex items-center gap-1 text-sm font-bold text-red-600 hover:text-red-700 transition-colors"
-                        >
-                            Lihat Detail
-                            <FiChevronDown className={`transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
-                        </button>
+                        {/* COL 2: Duration */}
+                        <div className="flex flex-col items-center">
+                            {/* Spacer for Title */}
+                            <div className="h-7 mb-2"></div>
+                            
+                            <p className="text-[13px] text-gray-900 mb-1">{formatDuration(data.flight.duration_minutes)}</p>
+                            <p className="text-[11px] text-gray-500 text-center">Langsung</p>
+                        </div>
+
+                        {/* COL 3: Destination */}
+                        <div className="flex flex-col items-end">
+                            {/* Spacer for Title */}
+                            <div className="h-7 mb-2"></div>
+                            
+                            <p className="text-[15px] font-medium text-gray-900 ">{formatTime(data.flight.arrival_time)}</p>
+                            <p className="text-[11px] text-gray-500 mb-0.5 text-right">{formatDate(data.flight.arrival_time)}</p>
+                            <p className="text-[11px] text-gray-500 text-right">{getCode(data.flight.destination)}</p>
+                        </div>
                     </div>
                 </div>
 
-                {/* Row 2: Visualisasi Rute (Sama seperti card lain) */}
-                <div className="flex items-center justify-between">
-                    {/* Keberangkatan */}
-                    <div className="text-left min-w-[60px]">
-                        <p className="text-lg font-bold text-gray-800">{formatTime(data.flight.departure_time)}</p>
-                        <p className="text-sm font-medium text-gray-500">{getCode(data.flight.origin)}</p>
-                    </div>
+                {/* SEPARATOR */}
+                <div className="hidden md:block w-[1px] bg-gray-100 self-stretch mx-4"></div>
 
-                    {/* Durasi */}
-                    <div className="flex-1 px-6 flex flex-col items-center">
-                        <p className="text-[10px] text-gray-400 mb-1 font-medium">{formatDuration(data.flight.duration_minutes)}</p>
-                        <div className="w-full h-[1px] bg-gray-300 relative flex items-center justify-center">
-                            <div className="w-1.5 h-1.5 rounded-full bg-gray-400 absolute left-0"></div>
-                            <div className="w-1.5 h-1.5 rounded-full bg-gray-400 absolute right-0"></div>
-                            <div className="bg-white px-1">
-                                <FiArrowRight className="text-gray-300 text-xs" />
-                            </div>
+                {/* KANAN: Harga & Status */}
+                <div className="w-full md:w-auto flex flex-col justify-center min-w-[160px]">
+                    <div className="text-center">
+                        <p className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">
+                            ECONOMY | 1.9
+                        </p>
+                        <div className="flex items-center justify-center gap-1.5 mb-2">
+                            <span className="text-red-600 font-bold text-sm">IDR</span>
+                            <span className="text-red-600 font-bold text-lg tracking-wide">
+                                {new Intl.NumberFormat('id-ID').format(parseFloat(data.total_amount))}
+                            </span>
                         </div>
-                        <p className="text-[10px] text-gray-400 mt-1">Langsung</p>
-                    </div>
-
-                    {/* Kedatangan */}
-                    <div className="text-right min-w-[60px]">
-                        <p className="text-lg font-bold text-gray-800">{formatTime(data.flight.arrival_time)}</p>
-                        <p className="text-sm font-medium text-gray-500">{getCode(data.flight.destination)}</p>
+                        <div className="mt-3 flex justify-center">
+                            {isCancelled ? (
+                                <span className="text-[10px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100">
+                                    Dibatalkan
+                                </span>
+                            ) : (
+                                <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded border border-green-100">
+                                    Berhasil
+                                </span>
+                            )}
+                        </div>
                     </div>
                 </div>
 
             </div>
 
-            {/* === DROPDOWN (STATUS INFO) === */}
-            {/* Karena tidak ada tombol aksi, kita tampilkan status transaksi */}
-            {isOpen && (
-                <div className="bg-gray-50 px-5 py-3 border-t border-gray-100 flex justify-between items-center animate-in slide-in-from-top-1">
-
-                    <div className="text-xs text-gray-500">
-                        Kode Booking: <span className="font-mono font-bold text-gray-700">{data.booking_code}</span>
+            {/* === FOOTER CARD (Detail Toggle) === */}
+            <div 
+                className={`bg-white px-6 py-3 border-t border-gray-100 flex justify-between items-center ${isCancelled ? "cursor-pointer hover:bg-gray-50 transition" : ""}`}
+                onClick={() => isCancelled && setIsOpen(!isOpen)}
+            >
+                <div className="text-[11px] font-medium text-gray-900">
+                    Kode Booking: <span className="font-mono font-bold ml-1">{data.booking_code}</span>
+                </div>
+                
+                {/* Toggle hanya muncul jika Dibatalkan */}
+                {isCancelled ? (
+                    <div className="flex items-center gap-1 text-[11px] font-bold text-gray-900 select-none">
+                        <span>Tampilkan Detail</span>
+                        <FiChevronDown className={`transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
                     </div>
+                ) : (
+                    <div className="text-[11px] font-medium text-green-600 flex items-center gap-1">
+                        <FiCheckCircle className="text-xs" />
+                        <span>E-Tiket Terbit</span>
+                    </div>
+                )}
+            </div>
+            {/* === DROPDOWN CONTENT === */}
+            {isOpen && isCancelled && (
+                <div className="bg-gray-50 px-6 py-4 border-t border-gray-100 animate-in slide-in-from-top-1">
+                    
+                    {/* ISI DROPDOWN: Info Batal jika Gagal */}
+                    <>
+                        <div className="text-xs text-gray-500 mb-2">
+                            Kode Booking: <span className="font-mono font-bold text-gray-700">{data.booking_code}</span>
+                        </div>
 
-                    {/* Status Badge di dalam Dropdown */}
-                    {isCancelled ? (
-                        <span className="flex items-center gap-1.5 text-red-600 bg-red-100 px-3 py-1 rounded-full text-xs font-bold">
-                            <FiXCircle /> Dibatalkan
+                        <span className="flex items-center gap-1.5 text-red-600 bg-red-100 px-3 py-1 rounded-full text-xs font-bold w-fit">
+                            <FiXCircle /> Dibatalkan / Gagal
                         </span>
-                    ) : (
-                        <span className="flex items-center gap-1.5 text-gray-600 bg-gray-200 px-3 py-1 rounded-full text-xs font-bold">
-                            <FiCheckCircle /> Transaksi Selesai
-                        </span>
-                    )}
+                        
+                        <p className="text-xs text-gray-500 mt-3">
+                            Mohon maaf, transaksi ini telah dibatalkan atau pembayaran gagal. Silakan lakukan pemesanan ulang.
+                        </p>
+                    </>
                 </div>
             )}
 
