@@ -1,14 +1,14 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from "react";
 import { FiSearch, FiRefreshCw, FiMapPin } from "react-icons/fi";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, createSearchParams } from "react-router-dom"; // Tambah createSearchParams
 import { airportService } from "../../services/airportService";
 import { Airport } from "../../types/api";
 import { AirportCombobox } from "../ui/AirportCombobox";
 import { PassengerSelector } from "../ui/PassengerSelector";
 import { CalendarSelector } from "../ui/CalendarSelector";
 
-// --- 1. LABEL BOX (FIXED: RATA KIRI TEGAS) ---
-// Menambahkan w-full dan text-left untuk mencegah centering
+// --- 1. LABEL BOX ---
 const BoxLabel: React.FC<{ label: string }> = ({ label }) => (
     <div className="mb-2 w-full text-left pl-1">
         <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">
@@ -83,20 +83,31 @@ export const SearchBox: React.FC = () => {
         setDestination(temp);
     };
 
+    // --- [REFACTOR UTAMA] Update Logic Navigasi ---
     const handleSearch = () => {
         if (!origin || !destination) return alert("Pilih bandara asal & tujuan");
         if (origin.id === destination.id) return alert("Bandara tidak boleh sama");
         if (isRoundTrip && !returnDate) return alert("Pilih tanggal pulang");
 
-        const params = new URLSearchParams();
-        params.append("origin", origin.id.toString());
-        params.append("destination", destination.id.toString());
-        params.append("departure_date", departureDate);
-        params.append("passengers", (adults + children).toString());
-        params.append("seat_class", seatClass);
-        if (isRoundTrip && returnDate) params.append("return_date", returnDate);
+        // Kirim detail penumpang terpisah, BUKAN digabung
+        const searchParams: any = {
+            origin: origin.id.toString(),
+            destination: destination.id.toString(),
+            departure_date: departureDate,
+            adults: adults.toString(),       // <-- FIXED
+            children: children.toString(),   // <-- FIXED
+            infants: infants.toString(),     // <-- FIXED
+            seat_class: seatClass,
+        };
 
-        navigate(`/search?${params.toString()}`);
+        if (isRoundTrip && returnDate) {
+            searchParams.return_date = returnDate;
+        }
+
+        navigate({
+            pathname: "/search", // Arahkan ke Search Results Page
+            search: createSearchParams(searchParams).toString()
+        });
     };
 
     return (
@@ -127,7 +138,7 @@ export const SearchBox: React.FC = () => {
                     </label>
                 </div>
 
-                {/* 2. GRID UTAMA (FIXED WIDTH / STATIS) */}
+                {/* 2. GRID UTAMA */}
                 <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.2fr)_auto_minmax(0,1.2fr)_minmax(0,1.4fr)_minmax(0,1.4fr)_minmax(0,1.3fr)_auto] gap-4 items-end">
                     
                     {/* DARI */}

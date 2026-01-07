@@ -22,12 +22,9 @@ interface Props {
 export const PassengerForm: React.FC<Props> = ({ 
   index, 
   passengerType, 
-  isInternational: _ignored, 
+  isInternational, 
   onChange 
 }) => {
-  
-  // --- FORCE TRUE (Eksplisit sesuai request sebelumnya) ---
-  const isInternational = true; 
 
   // --- HELPER: Label berdasarkan Tipe ---
   const getTypeLabel = () => {
@@ -102,15 +99,13 @@ export const PassengerForm: React.FC<Props> = ({
           <label className="block text-xs text-gray-500 font-medium mb-2">Titel</label>
           <div className="relative">
             <select
-              className="w-full max-w-[120px] h-11 px-3 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none font-medium text-gray-700 cursor-pointer hover:border-red-300 transition"
+              className="w-full max-w-[160px] h-11 px-3 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none font-medium text-gray-700 cursor-pointer hover:border-red-300 transition"
               value={formData.title}
               onChange={(e) => handleChange("title", e.target.value)}
             >
               <option value="Mr">Tuan (Mr)</option>
               <option value="Mrs">Nyonya (Mrs)</option>
               <option value="Ms">Nona (Ms)</option>
-              <option value="Mstr">Mstr</option>
-              <option value="Miss">Miss</option>
             </select>
             <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 max-w-[120px]">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

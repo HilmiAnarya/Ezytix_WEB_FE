@@ -23,6 +23,7 @@ export interface Airline {
 
 export interface FlightClass {
   seat_class: string; // "economy", "business", "first_class"
+  class_code: string; // [BARU] "I9", "Y", "J", dll
   price: string;      // PENTING: Backend Decimal dikirim sebagai String di JSON untuk presisi
   total_seats: number;
 }

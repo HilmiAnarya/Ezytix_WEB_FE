@@ -17,7 +17,6 @@ export const SearchResultsNavbar: React.FC = () => {
 
   const navItems = [
     { label: "Home", href: "/" },
-    { label: "Pesan Tiket", href: "/tiket" }, // Optional jika mau ada link ini
     { label: "Jadi Partner", href: "/partner" },
   ];
 
