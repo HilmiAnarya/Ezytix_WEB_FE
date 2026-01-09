@@ -36,7 +36,7 @@ export const ContactInfoSection: React.FC = () => {
                     <div className="w-full h-[300px] rounded-2xl overflow-hidden shadow-xl">
                         <iframe
                             title="Lokasi Ezytix"
-                            src="https://www.google.com/maps?q=Business+Park+Kirana+Cawang&output=embed"
+                            src="https://www.google.com/maps?q=PT.+Bina+Satria+Agung+Perkasa&output=embed"
                             className="w-full h-full border-0"
                             loading="lazy"
                         />

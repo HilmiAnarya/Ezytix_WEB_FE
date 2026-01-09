@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useSearchParams, useNavigate, createSearchParams } from "react-router-dom"; 
 import { SearchResultsNavbar } from "../components/layout/SearchResultsNavbar";
 import { SearchSummary } from "../components/sections/SearchSummary";
 import { FilterBar } from "../components/sections/FilterBar";
 import { FlightCard } from "../components/ui/FlightCard";
+import { EditSearchModal } from "../components/features/search/EditSearchModal"; // [NEW] Import Modal
 import { flightService } from "../services/flightService";
 import { airportService } from "../services/airportService"; 
 import { Flight } from "../types/api";
@@ -19,6 +20,9 @@ const SearchResultsPage: React.FC = () => {
     const [selectedOutboundFlight, setSelectedOutboundFlight] = useState<Flight | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    // [NEW] STATE MODAL
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
     // --- STATE HEADER CONTEXT ---
     const [headerContext, setHeaderContext] = useState({
@@ -121,7 +125,7 @@ const SearchResultsPage: React.FC = () => {
     }, [searchParams]); 
 
 
-    // --- HANDLER: SAAT USER MEMILIH TIKET (REFACTORED) ---
+    // --- HANDLER: SAAT USER MEMILIH TIKET ---
     const handleSelectFlight = (flight: Flight) => {
         const returnDateStr = searchParams.get("return_date");
         const selectedOutboundIdStr = searchParams.get("selected_outbound_flight_id");
@@ -132,7 +136,7 @@ const SearchResultsPage: React.FC = () => {
         // Skenario 1: Fase Pergi, tapi ada rencana pulang (Simpan ID dan reload page)
         if (returnDateStr && !selectedOutboundIdStr) {
             setSearchParams({
-                ...currentParams, // Pertahankan adults, children, infants
+                ...currentParams, 
                 selected_outbound_flight_id: flight.id.toString()
             });
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -146,9 +150,9 @@ const SearchResultsPage: React.FC = () => {
             // Buat payload URL untuk halaman Booking
             const bookingParams: any = {
                 outbound_id: outboundId.toString(),
-                adults: searchParams.get("adults") || "1",     // <-- TERUSKAN DATA PENUMPANG
-                children: searchParams.get("children") || "0", // <-- TERUSKAN DATA PENUMPANG
-                infants: searchParams.get("infants") || "0",   // <-- TERUSKAN DATA PENUMPANG
+                adults: searchParams.get("adults") || "1",     
+                children: searchParams.get("children") || "0", 
+                infants: searchParams.get("infants") || "0",   
                 seat_class: searchParams.get("seat_class") || "economy"
             };
 
@@ -163,9 +167,24 @@ const SearchResultsPage: React.FC = () => {
         }
     };
 
-
     const handleFilterChange = (filters: any) => console.log("Filter:", filters);
-    const handleEditSearch = () => console.log("Edit Search Modal Open");
+    
+    // [NEW] HANDLER BUKA MODAL
+    const handleEditSearch = () => setIsEditModalOpen(true);
+
+    // [NEW] PERSIAPAN DATA UNTUK MODAL (Initial Values)
+    const editSearchInitialValues = useMemo(() => {
+        return {
+            origin: { id: Number(searchParams.get("origin")), code: headerContext.originCode, city_name: headerContext.originCity } as any,
+            destination: { id: Number(searchParams.get("destination")), code: headerContext.destinationCode, city_name: headerContext.destinationCity } as any,
+            departureDate: searchParams.get("departure_date") || "",
+            returnDate: searchParams.get("return_date") || "",
+            adults: Number(searchParams.get("adults")) || 1,
+            children: Number(searchParams.get("children")) || 0,
+            infants: Number(searchParams.get("infants")) || 0,
+            seatClass: searchParams.get("seat_class") || "economy",
+        };
+    }, [searchParams, headerContext]);
 
     return (
         <div className="min-h-screen bg-gray-50 pb-20 font-sans">
@@ -181,7 +200,7 @@ const SearchResultsPage: React.FC = () => {
                     dateFormatted={headerContext.dateFormatted}
                     passengers={headerContext.passengers}
                     seatClass={headerContext.seatClass}
-                    onEditSearch={handleEditSearch}
+                    onEditSearch={handleEditSearch} // Pasang Handler di sini
                 />
 
                 {headerContext.isReturnPhase && selectedOutboundFlight && (
@@ -259,7 +278,6 @@ const SearchResultsPage: React.FC = () => {
                             <FlightCard 
                                 key={flight.id} 
                                 flight={flight} 
-                                // UPDATE: Tambahkan prop ini agar FlightCard bisa filter harga sesuai kelas
                                 selectedSeatClass={headerContext.seatClass} 
                                 onSelect={() => handleSelectFlight(flight)} 
                             />
@@ -267,6 +285,13 @@ const SearchResultsPage: React.FC = () => {
                     )}
                 </div>
             </div>
+
+            {/* --- [NEW] EDIT SEARCH MODAL --- */}
+            <EditSearchModal 
+                isOpen={isEditModalOpen} 
+                onClose={() => setIsEditModalOpen(false)}
+                initialValues={editSearchInitialValues}
+            />
         </div>
     );
 };

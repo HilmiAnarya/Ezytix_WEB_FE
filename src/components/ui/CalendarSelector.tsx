@@ -10,10 +10,14 @@ interface Props {
   disabled?: boolean;
   className?: string;
   placeholder?: string;
+  
+  // [NEW] Prop untuk mengatur arah munculnya popup (Default: 'left')
+  popoverAlign?: "left" | "right"; 
 }
 
 export const CalendarSelector: React.FC<Props> = ({ 
-  selectedDate, onChange, minDate, disabled = false, className, placeholder 
+  selectedDate, onChange, minDate, disabled = false, className, placeholder,
+  popoverAlign = "left" // Default Left
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   
@@ -130,7 +134,7 @@ export const CalendarSelector: React.FC<Props> = ({
   return (
     <div className={`relative w-full ${className}`} ref={dropdownRef}>
       
-      {/* TRIGGER INPUT (Gaya Baru: Konsisten dengan AirportCombobox) */}
+      {/* TRIGGER INPUT */}
       <div
         onClick={() => !disabled && setIsOpen(!isOpen)}
         className={`
@@ -148,7 +152,7 @@ export const CalendarSelector: React.FC<Props> = ({
              <FiCalendar />
         </span>
 
-        {/* Value Text (Tanpa Label Internal) */}
+        {/* Value Text */}
         <div className="flex-1 min-w-0">
            <p className={`text-base font-bold truncate ${selectedDate ? "text-gray-900" : "text-gray-400"}`}>
              {displayDate}
@@ -163,7 +167,12 @@ export const CalendarSelector: React.FC<Props> = ({
 
       {/* DROPDOWN CONTENT */}
       {isOpen && !disabled && (
-        <div className="absolute top-full left-0 mt-2 w-[340px] bg-white rounded-2xl shadow-xl z-50 p-5 border border-gray-100 ring-1 ring-black ring-opacity-5 select-none animate-in fade-in zoom-in-95 duration-200">
+        <div 
+            // [UPDATE] Logic Alignment: Jika 'right', gunakan 'right-0'
+            className={`absolute top-full mt-2 w-[340px] bg-white rounded-2xl shadow-xl z-50 p-5 border border-gray-100 ring-1 ring-black ring-opacity-5 select-none animate-in fade-in zoom-in-95 duration-200 ${
+                popoverAlign === 'right' ? 'right-0' : 'left-0'
+            }`}
+        >
           
           {/* Header: Month Navigation */}
           <div className="flex justify-between items-center mb-5">

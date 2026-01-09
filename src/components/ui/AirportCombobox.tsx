@@ -3,16 +3,21 @@ import { FiMapPin, FiSearch, FiChevronDown } from "react-icons/fi";
 import { Airport } from "../../types/api";
 
 interface Props {
-  // Label kita keep di interface tapi tidak dirender visual (agar tidak error di parent yang mungkin masih kirim props label)
+  // Label kita keep di interface tapi tidak dirender visual
   label?: string; 
   icon?: React.ReactNode;
   airports: Airport[];
   value: Airport | null;
   onChange: (airport: Airport) => void;
   placeholder?: string;
+  // [NEW] Prop untuk mengatur arah munculnya popup (Default: 'left')
+  popoverAlign?: "left" | "right";
 }
 
-export const AirportCombobox: React.FC<Props> = ({ icon, airports, value, onChange, placeholder }) => {
+export const AirportCombobox: React.FC<Props> = ({
+  airports, value, onChange, placeholder, 
+  popoverAlign = "left" // Default Left
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -57,12 +62,7 @@ export const AirportCombobox: React.FC<Props> = ({ icon, airports, value, onChan
             }
         `}
       >
-        {/* Icon */}
-        {/* <span className={`text-xl transition-colors ${isOpen ? "text-red-500" : "text-gray-400 group-hover:text-red-500"}`}>
-            {icon || <FiMapPin />}
-        </span> */}
-
-        {/* Value Text (Truncate agar box statis) */}
+        {/* Value Text */}
         <div className="flex-1 min-w-0">
           <p className={`text-base font-bold truncate ${value ? "text-gray-900" : "text-gray-400"}`}>
             {value ? `${value.city_name} (${value.code})` : placeholder || "Pilih Kota"}
@@ -75,7 +75,12 @@ export const AirportCombobox: React.FC<Props> = ({ icon, airports, value, onChan
 
       {/* DROPDOWN CONTENT */}
       {isOpen && (
-        <div className="absolute top-full left-0 mt-2 w-full md:w-[400px] bg-white rounded-2xl shadow-xl z-50 overflow-hidden border border-gray-100 animate-in fade-in zoom-in-95 duration-200">
+        <div 
+            // [UPDATE] Logic Alignment: Jika 'right', gunakan 'right-0'
+            className={`absolute top-full mt-2 w-full md:w-[400px] bg-white rounded-2xl shadow-xl z-50 overflow-hidden border border-gray-100 animate-in fade-in zoom-in-95 duration-200 ${
+                popoverAlign === 'right' ? 'right-0' : 'left-0'
+            }`}
+        >
           
           {/* Search Input */}
           <div className="p-3 border-b border-gray-100 bg-white">
@@ -105,7 +110,6 @@ export const AirportCombobox: React.FC<Props> = ({ icon, airports, value, onChan
                 }}
                 className="px-5 py-3 hover:bg-red-50 cursor-pointer border-b border-gray-50 last:border-none group transition-colors"
               >
-                {/* REFACTOR LAYOUT DISINI */}
                 <div className="flex flex-col gap-1">
                     
                     {/* BARIS 1: Nama Bandara + Kode */}
