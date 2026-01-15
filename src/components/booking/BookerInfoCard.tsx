@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React from "react";
 import { FiUser, FiMail, FiPhone, FiCheckCircle } from "react-icons/fi";
 import { useAuth } from "../../context/AuthContext"; // Pastikan path import sesuai

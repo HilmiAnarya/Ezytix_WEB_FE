@@ -16,7 +16,6 @@ import { Flight } from "../types/api";
 import { CreateBookingRequest, BookingItemPayload, PassengerPayload } from "../types/booking";
 
 // --- HELPER: Generator Tipe Penumpang ---
-// Mengubah jumlah (2 Dewasa, 1 Anak) menjadi array ["adult", "adult", "child"]
 const generatePassengerList = (
   adults: number, 
   children: number, 
@@ -149,9 +148,6 @@ const BookingPage: React.FC = () => {
             
             const fullName = p.lastName ? `${p.firstName} ${p.lastName}` : p.firstName;
 
-            // Tentukan Type Penumpang untuk Backend (jika diperlukan logic khusus)
-            // Di sini kita pakai title & dob standard
-            
             const payload: PassengerPayload = {
                 title: backendTitle,
                 full_name: fullName,
@@ -215,11 +211,11 @@ const BookingPage: React.FC = () => {
             
             console.log("Booking Success:", response);
             
-            if (response.payment_url) {
-                window.location.href = response.payment_url; 
+            // --- [UPDATED LOGIC: REDIRECT TO INTERNAL PAYMENT PAGE] ---
+            if (response.order_id) {
+                navigate(`/payment/${response.order_id}/select`);
             } else {
-                alert(`Booking Berhasil! Order ID: ${response.order_id}`);
-                navigate("/");
+                alert("Gagal mendapatkan Order ID. Silakan coba lagi.");
             }
 
         } catch (error: any) {
@@ -261,8 +257,8 @@ const BookingPage: React.FC = () => {
                                 <PassengerForm 
                                     key={`pax-${idx}`}
                                     index={idx}
-                                    passengerType={type} // <-- Ini kunci header dinamis (Dewasa/Anak)
-                                    isInternational={isInternational} // Force true di dalam component jika mau debug
+                                    passengerType={type} 
+                                    isInternational={isInternational} 
                                     onChange={(data, isValid) => handlePassengerUpdate(idx, data, isValid)}
                                 />
                             ))}

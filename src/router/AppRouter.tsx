@@ -12,6 +12,8 @@ import SearchResultsPage from "../pages/SearchResultsPage";
 import BookingPage from "../pages/BookingPage";
 import BookingSuccessPage from "../pages/BookingSuccessPage";
 import { BookingHistoryPage } from "../pages/BookingHistoryPage";
+import { PaymentMethodPage } from "../pages/payment/PaymentMethodPage";
+import { PaymentWaitingPage } from "../pages/payment/PaymentWaitingPage";
 
 export default function AppRouter() {
   return (
@@ -26,6 +28,8 @@ export default function AppRouter() {
 
       <Route element={<ProtectedRoute />}>
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/payment/:orderId/select" element={<PaymentMethodPage />} />
+        <Route path="/payment/:orderId/waiting" element={<PaymentWaitingPage />} />
         {/* nanti tambah */}
       </Route>
 
