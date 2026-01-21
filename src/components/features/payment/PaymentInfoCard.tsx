@@ -1,108 +1,156 @@
-import React, { useState, useEffect } from "react";
-import { Copy, Clock, CheckCircle } from "lucide-react";
-import { toast } from "sonner"; // Pastikan sudah install sonner atau ganti alert biasa
+import React from "react";
+import { Copy, Clock, CheckCircle, AlertCircle } from "lucide-react";
+import { toast } from "sonner";
+import QRCode from "react-qr-code";
 
-interface Props {
+// [UPDATED] Import formatPaymentDate yang baru
+import { formatCurrency, formatPaymentDate } from "../../../utils/formatters";
+import { useBookingTimer } from "../../../hooks/useBookingTimer";
+
+interface PaymentInfoCardProps {
   orderId: string;
+  bookingDate: string; // ISO String
   amount: number;
-  expiryTime: string; // ISO String
-  vaNumber: string;
-  bankCode: string;
+  status: string;
+  expiryTime: string;
+  paymentMethod: string;
+  paymentCode?: string;
+  qrString?: string;
 }
 
-export const PaymentInfoCard: React.FC<Props> = ({ orderId, amount, expiryTime, vaNumber, bankCode }) => {
-  const [timeLeft, setTimeLeft] = useState("");
+export const PaymentInfoCard: React.FC<PaymentInfoCardProps> = ({
+  orderId,
+  bookingDate,
+  amount,
+  status,
+  expiryTime,
+  paymentMethod,
+  paymentCode,
+  qrString
+}) => {
 
-  // Logic Hitung Mundur
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const now = new Date().getTime();
-      const distance = new Date(expiryTime).getTime() - now;
-
-      if (distance < 0) {
-        setTimeLeft("Expired");
-        clearInterval(interval);
-      } else {
-        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-        setTimeLeft(`${hours}j ${minutes}m ${seconds}s`);
-      }
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [expiryTime]);
+  const { hours, minutes, seconds, isExpired } = useBookingTimer(expiryTime);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(vaNumber);
-    toast.success("Nomor VA berhasil disalin!"); 
-    // Jika tidak pakai sonner: alert("Nomor VA berhasil disalin!");
+    if (paymentCode) {
+      navigator.clipboard.writeText(paymentCode);
+      toast.success("Nomor pembayaran berhasil disalin!");
+    }
   };
 
-  const formatCurrency = (val: number) => 
-    new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(val);
+  const getStatusColor = (s: string) => {
+    if (s === 'paid') return 'text-green-600';
+    if (s === 'expired') return 'text-red-600';
+    return 'text-foreground';
+  };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+    <div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm">
       <div className="p-6 space-y-4">
-        
+
         {/* Order ID */}
-        <div className="space-y-1">
+        <div className="space-y-3">
           <div className="flex justify-between text-sm">
-            <span className="text-gray-500">Order ID</span>
+            <span className="text-muted-foreground">Order saya</span>
           </div>
-          <p className="font-bold text-gray-900 text-lg tracking-wide font-mono">{orderId}</p>
+          <p className="font-semibold text-foreground tracking-wide">{orderId}</p>
         </div>
 
-        {/* Detail Status */}
-        <div className="space-y-3 border-t border-gray-100 pt-4">
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-500">Status</span>
-            <span className="font-bold text-orange-500 bg-orange-50 px-2 py-0.5 rounded text-xs">Belum Dibayar</span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-500">Total Pembayaran</span>
-            <span className="font-bold text-gray-900">{formatCurrency(amount)}</span>
-          </div>
-          <div className="flex justify-between text-sm items-center">
-            <span className="text-gray-500 flex items-center gap-1"><Clock className="w-3 h-3"/> Sisa Waktu</span>
-            <span className="font-bold text-red-600 font-mono">{timeLeft}</span>
-          </div>
-        </div>
+        {/* Details Section */}
+        <div className="space-y-3 border-t border-border pt-4">
 
-        {/* VA Section */}
-        <div className="space-y-3 border-t border-gray-100 pt-4">
-          <span className="text-sm text-gray-500">Transfer ke</span>
-          <div className="flex items-center gap-3">
-            <div className="bg-gray-100 px-3 py-2 rounded-md font-bold text-sm text-gray-700">
-              {bankCode}
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Status</span>
+            <div className="flex items-center gap-2">
+              {isExpired ? <AlertCircle className="w-4 h-4 text-red-600" /> : null}
+              <span className={`font-medium capitalize ${getStatusColor(status)}`}>
+                {isExpired ? "Waktu Habis" : (status === 'pending' ? 'Belum Dibayar' : status)}
+              </span>
             </div>
-            <span className="text-sm font-medium text-gray-900">{bankCode} Virtual Account</span>
           </div>
-          
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 flex items-center justify-between group hover:border-gray-300 transition-colors">
-            <span className="font-mono text-xl font-bold tracking-widest text-gray-800">
-              {vaNumber}
+
+          {/* [UPDATED] Gunakan formatPaymentDate */}
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Tanggal Pemesanan</span>
+            <span className="font-medium text-foreground">
+              {formatPaymentDate(bookingDate)}
             </span>
-            <button 
-              onClick={handleCopy}
-              className="p-2 hover:bg-white rounded-md transition-colors text-gray-400 hover:text-gray-600 hover:shadow-sm"
-              title="Salin Nomor VA"
-            >
-              <Copy className="w-4 h-4" />
-            </button>
+          </div>
+
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Total Pembayaran</span>
+            <span className="font-medium text-foreground">
+              {formatCurrency(amount)}
+            </span>
+          </div>
+
+          <div className="flex justify-between text-sm items-center">
+            <span className="text-muted-foreground flex items-center gap-1">
+              <Clock className="w-3 h-3" /> Waktu yang tersisa
+            </span>
+            <span className={`font-medium font-mono ${isExpired ? 'text-red-600' : 'text-primary'}`}>
+              {hours}j {minutes}m {seconds}d
+            </span>
+          </div>
+        </div>
+
+        {/* Payment Method Section */}
+        <div className="space-y-3 border-t border-border pt-4">
+          <span className="text-sm text-muted-foreground">
+            {qrString ? "Scan QR Code" : "Transfer ke"}
+          </span>
+
+          <div className="flex items-center gap-3">
+            <div className="bg-secondary px-3 py-2 rounded-md">
+              <span className="font-bold text-sm text-primary uppercase">
+                {paymentMethod}
+              </span>
+            </div>
+            <span className="text-sm font-medium text-foreground uppercase">
+              {paymentMethod === 'QRIS' ? 'QRIS' : `${paymentMethod} Virtual Account`}
+            </span>
+          </div>
+
+          {/* QR vs VA */}
+          <div className="bg-muted rounded-lg p-4 flex flex-col items-center justify-center min-h-[80px]">
+            {qrString ? (
+              <div className="bg-white p-2 rounded-lg">
+                <QRCode
+                  value={qrString}
+                  size={180}
+                  style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+                  viewBox={`0 0 256 256`}
+                />
+              </div>
+            ) : (
+              <div className="w-full flex items-center justify-between">
+                <span className="font-mono text-lg font-semibold tracking-wide text-foreground break-all">
+                  {paymentCode || "-"}
+                </span>
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center h-8 w-8 rounded-md text-sm font-medium transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  onClick={handleCopy}
+                  title="Salin Kode"
+                >
+                  <Copy className="h-4 w-4 text-muted-foreground" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
       </div>
-      
+
       {/* Footer Info */}
-      <div className="bg-blue-50 px-6 py-3 border-t border-blue-100 flex items-start gap-3">
-        <CheckCircle className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
-        <p className="text-xs text-blue-700 leading-relaxed">
-            Pembayaran akan terverifikasi otomatis. Anda tidak perlu mengirim bukti transfer. Halaman ini akan refresh otomatis setelah pembayaran berhasil.
+      <div className="bg-secondary/30 px-6 py-3 border-t border-border flex items-start gap-3">
+        <CheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          Pembayaran akan terverifikasi otomatis. Halaman ini akan refresh otomatis setelah pembayaran berhasil.
         </p>
       </div>
     </div>
   );
 };
+
+export default PaymentInfoCard;

@@ -211,9 +211,17 @@ const BookingPage: React.FC = () => {
             
             console.log("Booking Success:", response);
             
-            // --- [UPDATED LOGIC: REDIRECT TO INTERNAL PAYMENT PAGE] ---
+            // --- [UPDATED LOGIC: REDIRECT TO INTERNAL PAYMENT PAGE WITH EXPIRY] ---
             if (response.order_id) {
-                navigate(`/payment/${response.order_id}/select`);
+                // Navigate ke halaman Method Selection
+                // Membawa state expiry_time untuk timer dan total_amount
+                navigate(`/payment/method/${response.order_id}`, {
+                    state: {
+                        orderId: response.order_id,
+                        expiryTime: response.expiry_time, // KUNCI STRICT EXPIRY
+                        totalAmount: response.total_amount
+                    }
+                });
             } else {
                 alert("Gagal mendapatkan Order ID. Silakan coba lagi.");
             }
@@ -240,7 +248,7 @@ const BookingPage: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 font-sans pb-32">
-            <SimpleNavbar />
+            <SimpleNavbar/>
 
             <div className="pt-24 max-w-6xl mx-auto px-4 md:px-6">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative">

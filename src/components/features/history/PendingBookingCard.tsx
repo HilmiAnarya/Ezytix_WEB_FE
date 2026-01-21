@@ -1,6 +1,9 @@
-import React, { useState } from "react";
-import { FiChevronDown } from "react-icons/fi"; // Hapus import yang tidak perlu
+import React, { useMemo, useState } from "react";
+import { FiChevronDown, FiClock, FiAlertCircle } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
 import { Booking } from "../../../types/booking";
+import { useBookingTimer } from "../../../hooks/useBookingTimer";
+import { formatCurrency } from "../../../utils/formatters";
 
 interface Props {
   data: Booking;
@@ -8,25 +11,47 @@ interface Props {
 
 export const PendingBookingCard: React.FC<Props> = ({ data }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
+
+  // --- 1. STRICT EXPIRY LOGIC (REVISI) ---
+  // Analisis: Jangan pernah generate waktu fiktif (Date.now() + 1 jam).
+  // Jika backend mengirim expiry_time, gunakan itu.
+  // Jika TIDAK (undefined/null), kita anggap null agar hook tidak menghitung mundur fiktif.
+  const expiryTimestamp = useMemo(() => {
+    return data.expiry_time || null; 
+  }, [data.expiry_time]);
+
+  // Hook akan handle jika expiryTimestamp null -> isExpired = true / 00:00:00
+  // Pastikan hook useBookingTimer kamu bisa handle input null/undefined, 
+  // jika tidak, kita perlu validasi di sini.
+  // Asumsi aman: Kita pass string kosong atau tanggal masa lampau jika null.
+  const safeExpiry = expiryTimestamp || new Date(0).toISOString(); // 1970 (Expired)
+  
+  const { hours, minutes, seconds, isExpired } = useBookingTimer(safeExpiry);
+
+  // Logic Tampilan Timer: Hanya muncul jika BE mengirim data expiry DAN belum expired
+  const showTimer = !!expiryTimestamp && !isExpired;
 
   // --- HELPER FORMATTING ---
-  // Mengambil kode bandara dari string "Jakarta (CGK)" -> "CGK"
   const getCode = (location: string) => {
+    if (!location) return "UNK";
     const match = location.match(/\(([^)]+)\)/);
     return match ? match[1] : location.substring(0, 3).toUpperCase();
   };
 
-  // Helper untuk hitung sisa waktu (Sederhana)
-  const getExpiryText = () => {
-    if (!data.expiry_time) return "Segera lakukan pembayaran";
-    const exp = new Date(data.expiry_time);
-    return `Bayar sebelum ${exp.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'})}`;
+  // --- ACTION HANDLER ---
+  const handlePayNow = () => {
+    // Strategi Re-Selection: 
+    // User dipaksa create payment session baru / re-validate
+    navigate(`/payment/${data.order_id}/select`); 
   };
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl mb-4 overflow-hidden shadow-sm transition-shadow hover:shadow-md">
+      
       {/* BODY */}
       <div className="flex flex-col md:flex-row items-stretch">
+        
         {/* LEFT CONTENT */}
         <div
           className="flex-1 flex items-center gap-5 p-5 cursor-pointer"
@@ -44,13 +69,28 @@ export const PendingBookingCard: React.FC<Props> = ({ data }) => {
           {/* INFO */}
           <div className="flex flex-col">
             <div className="font-bold text-gray-900 text-base mb-1">
-              {data.flight.origin ? getCode(data.flight.origin) : "JKT"} &gt; {data.flight.destination ? getCode(data.flight.destination) : "SIN"}
+              {getCode(data.flight.origin)} &gt; {getCode(data.flight.destination)}
             </div>
-            <div className="text-sm text-gray-900 mb-0.5">
-              Booking ID: {data.booking_code}
+            
+            <div className="flex items-center gap-3 text-sm text-gray-500 mb-1">
+               <span>Booking ID: <span className="font-mono text-gray-700">{data.booking_code}</span></span>
             </div>
-            <div className="text-xs text-gray-400">
-              Dalam pemilihan metode pembayaran
+
+            {/* STATUS & TIMER (STRICT) */}
+            <div className="flex items-center gap-2">
+                {showTimer ? (
+                    // Kasus 1: Data Ada & Belum Expired -> Tampilkan Timer
+                    <span className="text-xs font-medium text-orange-600 flex items-center gap-1 bg-orange-50 px-2 py-0.5 rounded">
+                        <FiClock className="w-3 h-3" />
+                        Bayar dalam {hours}j {minutes}m {seconds}d
+                    </span>
+                ) : (
+                    // Kasus 2: Data Expired / Tidak Ada Data -> Tampilkan Status Warning
+                    <span className="text-xs font-bold text-red-600 bg-red-50 flex items-center gap-1 px-2 py-0.5 rounded">
+                        <FiAlertCircle className="w-3 h-3" />
+                        {data.status === 'expired' ? 'Expired' : 'Segera Bayar'}
+                    </span>
+                )}
             </div>
           </div>
         </div>
@@ -58,7 +98,7 @@ export const PendingBookingCard: React.FC<Props> = ({ data }) => {
         {/* SEPARATOR */}
         <div className="hidden md:block w-[1px] bg-gray-100 self-stretch my-4"></div>
 
-        {/* RIGHT ACTION - Same fixed width as Active card */}
+        {/* RIGHT ACTION */}
         <div className="w-full md:w-[140px] flex items-center justify-center p-5">
           <button
             onClick={() => setIsOpen(!isOpen)}
@@ -74,19 +114,32 @@ export const PendingBookingCard: React.FC<Props> = ({ data }) => {
 
       {/* DROPDOWN */}
       {isOpen && (
-        <div className="bg-gray-50 border-t border-gray-100 p-4 animate-in slide-in-from-top-1">
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-500">
-              Selesaikan pembayaran untuk mendapatkan tiket.
-            </span>
-            <a
-              href={data.payment_url}
-              target="_blank"
-              rel="noreferrer"
-              className="bg-red-600 text-white px-6 py-2 rounded-lg font-bold text-sm hover:bg-red-700 transition"
-            >
-              Bayar Sekarang
-            </a>
+        <div className="bg-gray-50 border-t border-gray-100 p-5 animate-in slide-in-from-top-1">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            
+            <div className="text-sm text-gray-600">
+               <p>Total Tagihan: <span className="font-bold text-gray-900">{formatCurrency(data.total_amount)}</span></p>
+               <p className="text-xs mt-1 text-gray-500">Selesaikan pembayaran untuk menerbitkan E-Tiket Anda.</p>
+            </div>
+
+            {/* ACTION BUTTON */}
+            {/* Logic: Hanya bisa bayar jika TIMER masih jalan (backend confirm belum expired) */}
+            {showTimer ? (
+                <button
+                    onClick={handlePayNow}
+                    className="w-full md:w-auto bg-red-600 text-white px-6 py-2.5 rounded-lg font-bold text-sm hover:bg-red-700 transition shadow-sm"
+                >
+                    Bayar Sekarang
+                </button>
+            ) : (
+                <button
+                    disabled
+                    className="w-full md:w-auto bg-gray-300 text-gray-500 px-6 py-2.5 rounded-lg font-bold text-sm cursor-not-allowed flex items-center gap-2 justify-center"
+                >
+                    <FiAlertCircle />
+                    {data.status === 'expired' ? 'Waktu Habis' : 'Cek Status'}
+                </button>
+            )}
           </div>
         </div>
       )}

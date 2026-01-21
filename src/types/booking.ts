@@ -43,8 +43,7 @@ export interface CreateBookingResponse {
     total_amount: string;
     status: string;
     transaction_time: string;
-    payment_url: string;
-    expiry_date: string;
+    expiry_time: string;       // [UPDATED] Strict Expiry Time (ISO String)
     bookings: BookingDetailResponse[];
 }
 
@@ -61,22 +60,17 @@ export interface BookingFlightDetail {
     departure_time: string;  // ISO String
     arrival_time: string;    // ISO String
     duration_minutes: number;
-
-    // [BARU] Tambahan Data Kelas dari Backend
     seat_class: string;      // Contoh: "Economy"
     class_code: string;      // Contoh: "I9", "Y"
 }
 
 // Representasi satu kartu booking di history
 export interface Booking {
+    order_id: string;        // [NEW] Dibutuhkan untuk redirect ke payment page
     booking_code: string;
-    status: 'pending' | 'paid' | 'cancelled' | 'expired'; // Enum status dari backend
-    total_amount: string;    // Decimal string
-    created_at: string;      // ISO String
-    
-    // Field Opsional (Khusus Pending)
-    payment_url?: string; 
-    expiry_time?: string; 
-    
+    status: 'pending' | 'paid' | 'cancelled' | 'expired';
+    total_amount: string;
+    created_at: string;
+    expiry_time?: string;    // [NEW] Wajib ada untuk timer di history card
     flight: BookingFlightDetail;
 }

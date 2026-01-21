@@ -7,6 +7,7 @@ import { ApiResponse } from '../types/api';
 
 export const bookingService = {
     // 1. Create Booking (POST)
+    // Response: Order ID & Expiry Time (Strict Expiry)
     createBooking: async (payload: CreateBookingRequest): Promise<CreateBookingResponse> => {
         try {
             console.log("📤 Sending Booking Payload:", JSON.stringify(payload, null, 2));
@@ -19,11 +20,13 @@ export const bookingService = {
         }
     },
 
-    // 2. Get Booking History (GET) [NEW]
+    // 2. Get Booking History (GET)
+    // Response: List Booking dengan status & expiry
     getMyBookings: async (): Promise<Booking[]> => {
         try {
-            // Endpoint ini harus match dengan Backend Route
+            console.log("📤 Fetching Booking History...");
             const response = await api.get<ApiResponse<Booking[]>>('/bookings/history');
+            console.log("📥 History Response:", response.data);
             return response.data.data;
         } catch (error: any) {
             console.error("❌ Fetch History Failed:", error.response?.data || error.message);
