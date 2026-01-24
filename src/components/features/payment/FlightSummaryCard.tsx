@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
-import { Plane, Users, Clock } from "lucide-react";
+import { Plane, Users, Clock, User } from "lucide-react"; // Import User icon
 import { Booking } from "../../../types/booking";
 
 interface Props {
@@ -15,7 +16,7 @@ export const FlightSummaryCard: React.FC<Props> = ({ booking }) => {
     };
 
     const formatTime = (isoString: string) => {
-        return new Date(isoString).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+        return new Date(isoString).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
     };
 
     const getCode = (location: string) => {
@@ -23,7 +24,7 @@ export const FlightSummaryCard: React.FC<Props> = ({ booking }) => {
         return match ? match[1] : location.substring(0, 3).toUpperCase();
     };
 
-    // Helper Durasi (jika backend kirim menit)
+    // Helper Durasi (Fallback jika formatted tidak ada)
     const formatDuration = (minutes: number) => {
         const h = Math.floor(minutes / 60);
         const m = minutes % 60;
@@ -77,26 +78,34 @@ export const FlightSummaryCard: React.FC<Props> = ({ booking }) => {
                     </div>
                 </div>
 
-                {/* Time Grid */}
+                {/* Time Grid with Transit Info */}
                 <div className="flex items-center justify-between px-1">
-                    <div className="text-left">
+                    <div className="text-left min-w-[60px]">
                         <div className="text-sm font-bold text-gray-900">{formatTime(booking.flight.departure_time)}</div>
                         <div className="text-[10px] text-gray-500">{formatDate(booking.flight.departure_time)}</div>
                     </div>
 
-                    <div className="text-center px-4 flex flex-col items-center w-full">
+                    {/* Visualisasi Durasi & Transit */}
+                    <div className="text-center px-2 flex flex-col items-center flex-1">
                         <div className="text-[10px] font-medium text-gray-400 mb-1 flex items-center gap-1">
                             <Clock className="w-3 h-3" />
-                            {formatDuration(booking.flight.duration_minutes)}
+                            {/* Prioritaskan formatted dari backend */}
+                            {booking.flight.duration_formatted || formatDuration(booking.flight.duration_minutes)}
                         </div>
+                        
+                        {/* Garis Visualisasi */}
                         <div className="w-full h-[1px] bg-gray-200 relative my-1">
                             <div className="absolute -top-[2px] left-0 w-1.5 h-1.5 rounded-full bg-gray-300"></div>
                             <div className="absolute -top-[2px] right-0 w-1.5 h-1.5 rounded-full bg-red-300"></div>
                         </div>
-                        <div className="text-[10px] text-gray-400">Langsung</div>
+                        
+                        {/* Info Transit dari Backend */}
+                        <div className="text-[10px] text-gray-500 font-bold mt-1 uppercase tracking-wide">
+                            {booking.flight.transit_info || "Langsung"}
+                        </div>
                     </div>
 
-                    <div className="text-right">
+                    <div className="text-right min-w-[60px]">
                         <div className="text-sm font-bold text-gray-900">{formatTime(booking.flight.arrival_time)}</div>
                         <div className="text-[10px] text-gray-500">{formatDate(booking.flight.arrival_time)}</div>
                     </div>
@@ -105,18 +114,46 @@ export const FlightSummaryCard: React.FC<Props> = ({ booking }) => {
                 {/* Divider */}
                 <div className="border-t border-dashed border-gray-200" />
 
-                {/* Passenger Info (Simplified) */}
+                {/* Passenger Info (Dynamic Rendering) */}
                 <div>
-                    <h4 className="text-xs font-bold text-gray-800 mb-2 flex items-center gap-2">
+                    <h4 className="text-xs font-bold text-gray-800 mb-3 flex items-center gap-2">
                         <Users className="w-3 h-3 text-gray-400" />
-                        Info Penumpang
+                        Daftar Penumpang
                     </h4>
-                    {/* Karena detail penumpang belum ada di API History, kita tampilkan placeholder yang masuk akal */}
-                    <div className="text-xs text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-100">
-                        Total {booking.total_amount ? "1" : "?"} Penumpang (Detail tersedia di E-Ticket setelah pembayaran)
-                        {/* Note: Nanti kalau backend update API history bawa passengers, kita loop di sini */}
-                    </div>
+                    
+                    {booking.passengers && booking.passengers.length > 0 ? (
+                        <div className="space-y-2">
+                            {booking.passengers.map((pax, idx) => (
+                                <div key={idx} className="flex items-center justify-between text-xs bg-gray-50 p-2 rounded border border-gray-100">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
+                                            <User className="w-3 h-3" />
+                                        </div>
+                                        <div>
+                                            <div className="font-bold text-gray-700 capitalize">
+                                                {pax.full_name}
+                                            </div>
+                                            {/* Tampilkan tipe penumpang (optional mapping) */}
+                                            <div className="text-[10px] text-gray-400 capitalize">
+                                                {pax.type === 'tuan' || pax.type === 'nyonya' ? 'Dewasa' : pax.type}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {pax.ticket_number && (
+                                         <span className="text-[10px] font-mono text-gray-400">
+                                            {pax.ticket_number}
+                                         </span>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-xs text-gray-400 italic text-center py-2 bg-gray-50 rounded border border-gray-100 border-dashed">
+                            Detail penumpang sedang dimuat...
+                        </div>
+                    )}
                 </div>
+
             </div>
         </div>
     );

@@ -9,16 +9,34 @@ interface TimeLeft {
 }
 
 export const useBookingTimer = (targetDateStr: string) => {
-  // 1. Definisikan fungsi kalkulasi (gunakan useCallback agar stabil)
-  // Atau bisa juga didefinisikan di luar komponen jika tidak butuh props lain
   const calculateTimeLeft = useCallback(() => {
-    // Validasi input
     if (!targetDateStr) {
       return { hours: '00', minutes: '00', seconds: '00', isExpired: true };
     }
 
-    const targetDate = new Date(targetDateStr).getTime();
+    // --- TIMEZONE HOTFIX START ---
+    // Masalah: Backend mengirim Waktu Lokal (WIB) tapi dilabeli UTC ('Z').
+    // Akibat: Browser menganggapnya UTC, lalu menambah +7 jam lagi -> Timer jadi 8 jam (1+7).
+    // Solusi: Jika terjadi anomali offset, kita coba parse sebagai Local Time (buang 'Z').
+    
+    let targetDate = new Date(targetDateStr).getTime();
     const now = new Date().getTime();
+    
+    // Deteksi selisih jam. Jika selisihnya > 5 jam (padahal harusnya 1 jam), 
+    // kemungkinan besar kena isu timezone +7.
+    // Kita coba parse ulang stringnya dengan membuang 'Z' agar dibaca sebagai waktu lokal komputer.
+    if (targetDateStr.endsWith('Z')) {
+       // Cek estimasi kasar
+       const diffHours = (targetDate - now) / (1000 * 60 * 60);
+       if (diffHours > 7) { 
+          // Hapus 'Z' agar browser membacanya sebagai "2023-xx-xxT18:00:00" (Local Time)
+          // Browser tidak akan menambah +7 lagi karena dianggap sudah lokal.
+          const localString = targetDateStr.replace('Z', '');
+          targetDate = new Date(localString).getTime();
+       }
+    }
+    // --- TIMEZONE HOTFIX END ---
+
     const difference = targetDate - now;
 
     if (difference <= 0) {
@@ -42,25 +60,19 @@ export const useBookingTimer = (targetDateStr: string) => {
     };
   }, [targetDateStr]);
 
-  // 2. Lazy Initialization: Hitung nilai awal SAAT state dibuat
-  // Ini menghindari pemanggilan setTimeLeft di useEffect pertama kali
   const [timeLeft, setTimeLeft] = useState<TimeLeft>(() => calculateTimeLeft());
 
   useEffect(() => {
-    // 3. Setup Interval
     const timer = setInterval(() => {
       const result = calculateTimeLeft();
       setTimeLeft(result);
-
-      // Jika expired, hentikan interval agar hemat resource
       if (result.isExpired) {
         clearInterval(timer);
       }
     }, 1000);
 
-    // Cleanup saat unmount atau targetDateStr berubah
     return () => clearInterval(timer);
-  }, [calculateTimeLeft]); // Dependency ke fungsi kalkulasi
+  }, [calculateTimeLeft]);
 
   return timeLeft;
 };

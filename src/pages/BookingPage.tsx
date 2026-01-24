@@ -17,15 +17,15 @@ import { CreateBookingRequest, BookingItemPayload, PassengerPayload } from "../t
 
 // --- HELPER: Generator Tipe Penumpang ---
 const generatePassengerList = (
-  adults: number, 
-  children: number, 
-  infants: number
+    adults: number,
+    children: number,
+    infants: number
 ): ("adult" | "child" | "infant")[] => {
-  const list: ("adult" | "child" | "infant")[] = [];
-  for (let i = 0; i < adults; i++) list.push("adult");
-  for (let i = 0; i < children; i++) list.push("child");
-  for (let i = 0; i < infants; i++) list.push("infant");
-  return list;
+    const list: ("adult" | "child" | "infant")[] = [];
+    for (let i = 0; i < adults; i++) list.push("adult");
+    for (let i = 0; i < children; i++) list.push("child");
+    for (let i = 0; i < infants; i++) list.push("infant");
+    return list;
 };
 
 const BookingPage: React.FC = () => {
@@ -35,7 +35,7 @@ const BookingPage: React.FC = () => {
     // --- 1. STATE MANAGEMENT ---
     const [loading, setLoading] = useState(true);
     const [isProcessing, setIsProcessing] = useState(false);
-    
+
     const [outboundFlight, setOutboundFlight] = useState<Flight | null>(null);
     const [inboundFlight, setInboundFlight] = useState<Flight | null>(null);
 
@@ -46,9 +46,9 @@ const BookingPage: React.FC = () => {
     const totalPassengers = adultsCount + childrenCount + infantsCount;
 
     // Generate List Tipe Penumpang (untuk Header Dinamis)
-    const passengerTypes = useMemo(() => 
-        generatePassengerList(adultsCount, childrenCount, infantsCount), 
-    [adultsCount, childrenCount, infantsCount]);
+    const passengerTypes = useMemo(() =>
+        generatePassengerList(adultsCount, childrenCount, infantsCount),
+        [adultsCount, childrenCount, infantsCount]);
 
     // State Data Form Penumpang
     const [passengersData, setPassengersData] = useState<PassengerData[]>([]);
@@ -74,7 +74,7 @@ const BookingPage: React.FC = () => {
                 }
 
                 const results = await Promise.all(promises);
-                
+
                 setOutboundFlight(results[0]);
                 if (results[1]) setInboundFlight(results[1]);
 
@@ -98,33 +98,48 @@ const BookingPage: React.FC = () => {
     // A. Deteksi Internasional
     const isInternational = useMemo(() => {
         if (!outboundFlight) return false;
-        
-        const isOutboundIntl = 
-            outboundFlight.origin.country !== "Indonesia" || 
+
+        const isOutboundIntl =
+            outboundFlight.origin.country !== "Indonesia" ||
             outboundFlight.destination.country !== "Indonesia";
-        
+
         let isInboundIntl = false;
         if (inboundFlight) {
-            isInboundIntl = 
-                inboundFlight.origin.country !== "Indonesia" || 
+            isInboundIntl =
+                inboundFlight.origin.country !== "Indonesia" ||
                 inboundFlight.destination.country !== "Indonesia";
         }
 
         return isOutboundIntl || isInboundIntl;
     }, [outboundFlight, inboundFlight]);
 
-    // B. Kalkulasi Harga
+    // B. Kalkulasi Harga (FIXED LOGIC)
     const { grandTotal } = useMemo(() => {
         const count = passengersData.length; // atau totalPassengers
-        const outPrice = parseFloat(outboundFlight?.flight_classes[0]?.price.toString() || "0");
-        const inPrice = parseFloat(inboundFlight?.flight_classes[0]?.price.toString() || "0");
+
+        // 1. Ambil Seat Class dari URL (Default Economy)
+        const selectedClass = searchParams.get("seat_class") || "economy";
+
+        // 2. Helper untuk mencari harga berdasarkan kelas yang dipilih
+        const getPrice = (flight: Flight | null) => {
+            if (!flight) return 0;
+            // Cari kelas yang cocok (case insensitive)
+            const foundClass = flight.flight_classes.find(
+                (fc) => fc.seat_class.toLowerCase() === selectedClass.toLowerCase()
+            );
+            // Jika ketemu ambil harganya, jika tidak default 0
+            return foundClass ? parseFloat(foundClass.price.toString()) : 0;
+        };
+
+        const outPrice = getPrice(outboundFlight);
+        const inPrice = getPrice(inboundFlight);
 
         return {
             totalOutbound: outPrice * count,
             totalInbound: inPrice * count,
             grandTotal: (outPrice * count) + (inPrice * count)
         };
-    }, [outboundFlight, inboundFlight, passengersData.length]);
+    }, [outboundFlight, inboundFlight, passengersData.length, searchParams]); // searchParams added to dep array
 
     // C. Gatekeeper Validasi
     const isFormValid = useMemo(() => {
@@ -139,13 +154,13 @@ const BookingPage: React.FC = () => {
         // Mapping Penumpang
         const backendPassengers: PassengerPayload[] = passengersData.map((p) => {
             // Mapping Title
-            let backendTitle = "tuan"; 
+            let backendTitle = "tuan";
             const t = p.title.toLowerCase();
             if (t.includes("mrs") || t.includes("nyonya")) backendTitle = "nyonya";
             else if (t.includes("ms") || t.includes("nona")) backendTitle = "nona";
             else if (t.includes("mstr")) backendTitle = "tuan"; // Anak laki-laki
             else if (t.includes("miss")) backendTitle = "nona"; // Anak perempuan
-            
+
             const fullName = p.lastName ? `${p.firstName} ${p.lastName}` : p.firstName;
 
             const payload: PassengerPayload = {
@@ -208,14 +223,14 @@ const BookingPage: React.FC = () => {
         try {
             const payload = transformToPayload();
             const response = await bookingService.createBooking(payload);
-            
+
             console.log("Booking Success:", response);
-            
+
             // --- [UPDATED LOGIC: REDIRECT TO INTERNAL PAYMENT PAGE WITH EXPIRY] ---
             if (response.order_id) {
                 // Navigate ke halaman Method Selection
                 // Membawa state expiry_time untuk timer dan total_amount
-                navigate(`/payment/method/${response.order_id}`, {
+                navigate(`/payment/${response.order_id}/select`, {
                     state: {
                         orderId: response.order_id,
                         expiryTime: response.expiry_time, // KUNCI STRICT EXPIRY
@@ -248,32 +263,32 @@ const BookingPage: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 font-sans pb-32">
-            <SimpleNavbar/>
+            <SimpleNavbar />
 
             <div className="pt-24 max-w-6xl mx-auto px-4 md:px-6">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative">
-                    
+
                     {/* LEFT COLUMN */}
                     <div className="lg:col-span-8 space-y-6">
-                        
+
                         {/* 1. Detail Pemesan (Auto-filled) */}
                         <BookerInfoCard />
 
                         {/* 2. Form Penumpang (Dynamic Rendering) */}
                         <div className="space-y-4">
                             {passengerTypes.map((type, idx) => (
-                                <PassengerForm 
+                                <PassengerForm
                                     key={`pax-${idx}`}
                                     index={idx}
-                                    passengerType={type} 
-                                    isInternational={isInternational} 
+                                    passengerType={type}
+                                    isInternational={isInternational}
                                     onChange={(data, isValid) => handlePassengerUpdate(idx, data, isValid)}
                                 />
                             ))}
                         </div>
 
                         {/* 3. Action Footer (Desktop/Mobile) */}
-                        <BookingActionFooter 
+                        <BookingActionFooter
                             grandTotal={grandTotal}
                             isValid={isFormValid}
                             isProcessing={isProcessing}
@@ -283,7 +298,7 @@ const BookingPage: React.FC = () => {
 
                     {/* RIGHT COLUMN */}
                     <div className="lg:col-span-4">
-                        <BookingSidebar 
+                        <BookingSidebar
                             outboundFlight={outboundFlight}
                             inboundFlight={inboundFlight}
                             passengerCount={totalPassengers}
