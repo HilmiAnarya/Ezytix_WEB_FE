@@ -13,8 +13,8 @@ import { SimplePaymentNavbar } from "../../components/layout/SimplePaymentNavbar
 import { bookingService } from "../../services/bookingService";
 import { paymentService } from "../../services/paymentService";
 import { Booking } from "../../types/booking";
-import { PaymentType } from "../../data/paymentStaticData";
-import { BackendPaymentType } from "../../types/payment";
+// [FIX] Import Type yang benar dari hasil refactor Phase 1
+import { PaymentType, InitiatePaymentRequest } from "../../types/payment";
 
 export const PaymentMethodPage: React.FC = () => {
     const { orderId } = useParams<{ orderId: string }>();
@@ -22,17 +22,17 @@ export const PaymentMethodPage: React.FC = () => {
     const location = useLocation();
 
     // --- 1. STATE INITIALIZATION ---
-    // Optimistic Data dari halaman sebelumnya (agar Timer & Harga langsung muncul)
     const initialExpiry = location.state?.expiryTime;
     const initialAmount = location.state?.totalAmount;
 
-    // Data Booking Lengkap (untuk Flight Summary)
+    // Data Booking
     const [booking, setBooking] = useState<Booking | null>(null);
     const [loading, setLoading] = useState(true);
 
     // Payment Selection State
     const [selectedMethodCode, setSelectedMethodCode] = useState<string | null>(null);
-    const [selectedMethodType, setSelectedMethodType] = useState<BackendPaymentType | null>(null);
+    // [FIX] Gunakan tipe 'PaymentType' agar match dengan PaymentMethodList
+    const [selectedMethodType, setSelectedMethodType] = useState<PaymentType | null>(null);
     const [processing, setProcessing] = useState(false);
 
     // --- 2. FETCH BOOKING DETAILS ---
@@ -44,19 +44,16 @@ export const PaymentMethodPage: React.FC = () => {
 
         const fetchBooking = async () => {
             try {
-                // TODO: Idealnya backend punya endpoint GET /bookings/:id
-                // Workaround: Ambil dari history list
+                // Fetch history untuk mencari booking ini
+                // Idealnya: endpoint GET /bookings/:id
                 const allBookings = await bookingService.getMyBookings();
                 
-                // Match by order_id (Prioritas) atau booking_code
                 const found = allBookings.find(b => b.order_id === orderId || b.booking_code === orderId);
                 
                 if (found) {
                     setBooking(found);
                 } else {
                     console.error("Booking not found in history");
-                    // alert("Pesanan tidak ditemukan");
-                    // navigate("/");
                 }
             } catch (err) {
                 console.error("Failed to fetch booking details", err);
@@ -70,29 +67,42 @@ export const PaymentMethodPage: React.FC = () => {
 
     // --- 3. HANDLERS ---
 
-    // Handle User Pilih Metode (Menerima Code & Type)
+    // Handle User Pilih Metode
     const handleSelectMethod = (code: string, type: PaymentType) => {
         setSelectedMethodCode(code);
-        setSelectedMethodType(type as BackendPaymentType);
+        setSelectedMethodType(type);
     };
 
-    // Handle Klik Bayar
+    // [CRITICAL LOGIC] Handle Klik Bayar
     const handlePay = async () => {
         if (!selectedMethodCode || !selectedMethodType || !orderId) return;
         setProcessing(true);
 
         try {
-            // Call API Backend
-            const response = await paymentService.initiatePayment({
+            // A. Siapkan Payload Dasar
+            const payload: InitiatePaymentRequest = {
                 order_id: orderId,
-                payment_method: selectedMethodCode,
                 payment_type: selectedMethodType
-            });
+            };
 
-            console.log("Initiate Payment Success:", response);
+            // B. Conditional Field Logic (Midtrans Core API)
+            // Backend kita: Jika bank_transfer, butuh field 'bank'
+            // Jika echannel (Mandiri), TIDAK butuh field 'bank' (sudah implied echannel)
+            // Jika qris, TIDAK butuh field 'bank'
+            
+            if (selectedMethodType === 'bank_transfer') {
+                payload.bank = selectedMethodCode; // 'bca', 'bni', 'bri', 'permata'
+            } 
+            
+            console.log("🚀 Payload to Backend:", payload);
 
-            // Redirect ke Waiting Page
-            // Bawa response payment (VA, QR, dll) dan Expiry Time
+            // C. Call API Backend
+            const response = await paymentService.initiatePayment(payload);
+
+            console.log("✅ Initiate Payment Success:", response);
+
+            // D. Redirect ke Waiting Page
+            // Kita bawa paymentData response (berisi VA number / QR string) ke halaman sebelah
             navigate(`/payment/${orderId}/waiting`, {
                 state: {
                     paymentData: response,
@@ -103,7 +113,7 @@ export const PaymentMethodPage: React.FC = () => {
         } catch (error: any) {
             console.error("Payment Error:", error);
             const msg = error.response?.data?.message || "Gagal memproses pembayaran";
-            alert(msg);
+            alert(`Gagal Bayar: ${msg}`);
         } finally {
             setProcessing(false);
         }
@@ -115,14 +125,12 @@ export const PaymentMethodPage: React.FC = () => {
     const displayAmount = booking ? parseFloat(booking.total_amount) : (initialAmount ? parseFloat(initialAmount) : 0);
     const displayExpiry = booking?.expiry_time || initialExpiry;
 
-    // Loading State Full Page hanya jika tidak ada data sama sekali
     if (loading && !booking && !initialExpiry) {
         return <div className="min-h-screen flex items-center justify-center"><FiLoader className="animate-spin text-2xl" /></div>;
     }
 
     return (
         <div className="min-h-screen bg-gray-50 pb-20">
-            {/* Navbar dengan Strict Expiry Timer */}
             <SimplePaymentNavbar expiryTime={displayExpiry} />
 
             <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 pt-24">
@@ -130,19 +138,18 @@ export const PaymentMethodPage: React.FC = () => {
 
                     {/* KOLOM KIRI: PILIH METODE */}
                     <div className="space-y-6">
-                        {/* 1. Header Mobile Only (Optional) */}
                         <div className="md:hidden">
                             <h1 className="text-xl font-bold text-gray-900">Pembayaran</h1>
                             <p className="text-sm text-gray-500">Order ID: {orderId}</p>
                         </div>
 
-                        {/* 2. List Metode Pembayaran */}
+                        {/* [FIX] Props Name Updated: selectedMethodCode */}
                         <PaymentMethodList
-                            selectedMethod={selectedMethodCode}
+                            selectedMethodCode={selectedMethodCode}
                             onSelectMethod={handleSelectMethod}
                         />
 
-                        {/* 3. Total & Tombol Bayar */}
+                        {/* Total & Tombol Bayar */}
                         <PaymentTotalCard
                             totalAmount={displayAmount}
                             selectedMethod={selectedMethodCode}
@@ -151,13 +158,12 @@ export const PaymentMethodPage: React.FC = () => {
                         />
                     </div>
 
-                    {/* KOLOM KANAN: FLIGHT SUMMARY (Sticky) */}
+                    {/* KOLOM KANAN: FLIGHT SUMMARY */}
                     <div className="order-first md:order-last">
                         <div className="md:sticky md:top-24">
                             {booking ? (
                                 <FlightSummaryCard booking={booking} />
                             ) : (
-                                // Skeleton Loading untuk Card Summary
                                 <div className="bg-white border border-gray-200 rounded-xl p-4 h-64 animate-pulse">
                                     <div className="h-4 bg-gray-200 rounded w-1/3 mb-4"></div>
                                     <div className="h-20 bg-gray-100 rounded mb-4"></div>

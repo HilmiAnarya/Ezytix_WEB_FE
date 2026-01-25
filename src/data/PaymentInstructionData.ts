@@ -1,289 +1,181 @@
-// src/data/paymentInstructionData.ts
+// src/data/PaymentInstructionData.ts
 import { PaymentInstructions } from "../types/payment";
 
 // Mapping: Payment Method Code -> JSON Instructions
 export const PAYMENT_INSTRUCTION_DATA: Record<string, PaymentInstructions> = {
-  // --- BCA (Object Structure) ---
+  // --- BCA (Standard Virtual Account) ---
   BCA: {
     atm: [
       {
-        title: "Find Nearest ATM",
+        title: "ATM BCA",
         steps: {
-          "Insert your BCA ATM card and PIN":
-            "Insert your BCA ATM card and PIN",
-          "Enter your ATM PIN": "Enter your ATM PIN",
+          "Masukkan Kartu ATM BCA & PIN": "Masukkan Kartu ATM BCA & PIN",
+          "Pilih menu Transaksi Lainnya > Transfer > ke Rekening BCA Virtual Account": 
+            "Pilih menu Transaksi Lainnya > Transfer > ke Rekening BCA Virtual Account",
+          "Masukkan nomor Virtual Account <bold>{{fullPaymentCode}}</bold>": 
+            "Masukkan nomor Virtual Account <bold>{{fullPaymentCode}}</bold>",
+          "Di halaman konfirmasi, pastikan detil pembayaran sudah sesuai seperti No VA, Nama, Perus/Produk": 
+            "Di halaman konfirmasi, pastikan detil pembayaran sudah sesuai seperti No VA, Nama, Perus/Produk",
+          "Masukkan Jumlah Transfer sesuai dengan Total Tagihan": 
+            "Masukkan Jumlah Transfer sesuai dengan Total Tagihan",
+          "Ikuti instruksi untuk menyelesaikan transaksi": "Ikuti instruksi untuk menyelesaikan transaksi",
         },
       },
+    ],
+    mbanking: [
       {
-        title: "Payment Details",
+        title: "m-BCA (BCA Mobile)",
         steps: {
-          'Select Menu "Other Transaction"': 'Select Menu "Other Transaction"',
-          'Select "Transfer"': 'Select "Transfer"',
-          'Select "To BCA Virtual Account"': 'Select "To BCA Virtual Account"',
-          'Enter Virtual Account Number <bold>{{fullPaymentCode}}</bold>. Press "Correct" to proceed':
-            'Enter Virtual Account Number <bold>{{fullPaymentCode}}</bold>. Press "Correct" to proceed',
-          'Verify Virtual Account details and then enter amount to be transferred and select "Correct" to confirm':
-            'Verify Virtual Account details and then enter amount to be transferred and select "Correct" to confirm',
-          "Confirm your transaction details displayed":
-            "Confirm your transaction details displayed",
-          'Select "Yes" if the details are correct or "No" if the details are not correct':
-            'Select "Yes" if the details are correct or "No" if the details are not correct',
-        },
-      },
-      {
-        title: "Transaction Completed",
-        steps: {
-          'You have completed your transaction. Select "No" to end the transaction':
-            'You have completed your transaction. Select "No" to end the transaction',
-          "Once the payment transaction is completed, this invoice will be updated automatically. This may take up to 5 minute":
-            "Once the payment transaction is completed, this invoice will be updated automatically. This may take up to 5 minute",
+          "Lakukan log in pada aplikasi BCA Mobile": "Lakukan log in pada aplikasi BCA Mobile",
+          "Pilih menu m-BCA, kemudian masukkan kode akses m-BCA": "Pilih menu m-BCA, kemudian masukkan kode akses m-BCA",
+          "Pilih m-Transfer > BCA Virtual Account": "Pilih m-Transfer > BCA Virtual Account",
+          "Pilih dari Daftar Transfer, atau masukkan nomor Virtual Account <bold>{{fullPaymentCode}}</bold>": 
+            "Pilih dari Daftar Transfer, atau masukkan nomor Virtual Account <bold>{{fullPaymentCode}}</bold>",
+          "Masukkan jumlah yang ingin dibayarkan": "Masukkan jumlah yang ingin dibayarkan",
+          "Masukkan pin m-BCA": "Masukkan pin m-BCA",
+          "Pembayaran selesai. Simpan notifikasi yang muncul sebagai bukti pembayaran": 
+            "Pembayaran selesai. Simpan notifikasi yang muncul sebagai bukti pembayaran",
         },
       },
     ],
     ibanking: [
       {
-        title: "Log In To Your Account",
+        title: "KlikBCA Individual",
         steps: {
-          "Login to KlikBCA Individual (<anchor>{{iBankingSource}}</anchor>)":
-            "Login to KlikBCA Individual (<anchor>{{iBankingSource}}</anchor>)",
-          'Select "Transfer", then select "Transfer to BCA Virtual Account"':
-            'Select "Transfer", then select "Transfer to BCA Virtual Account"',
-        },
-      },
-      {
-        title: "Payment Details",
-        steps: {
-          "Enter the Virtual Account Number <bold>{{fullPaymentCode}}</bold>":
-            "Enter the Virtual Account Number <bold>{{fullPaymentCode}}</bold>",
-          'Select "Continue" to proceed your payment':
-            'Select "Continue" to proceed your payment',
-          'Enter "RESPON KEYBCA APPLI 1" shown in your BCA Token, then click on the "Send" button':
-            'Enter "RESPON KEYBCA APPLI 1" shown in your BCA Token, then click on the "Send" button',
-          "Enter the authentication token code":
-            "Enter the authentication token code",
-        },
-      },
-      {
-        title: "Transaction Completed",
-        steps: {
-          "Your transaction is successful": "Your transaction is successful",
-          "Once the payment transaction is completed, this invoice will be updated automatically. This may take up to 5 minutes":
-            "Once the payment transaction is completed, this invoice will be updated automatically. This may take up to 5 minutes",
-        },
-      },
-    ],
-    mbanking: [
-      {
-        title: "Log In To Your Account",
-        steps: {
-          "Open BCA Mobile App": "Open BCA Mobile App",
-          'Select "m-BCA", then select "m-Transfer"':
-            'Select "m-BCA", then select "m-Transfer"',
-        },
-      },
-      {
-        title: "Payment Details",
-        steps: {
-          'Select "m-BCA", then select "m-Transfer"':
-            'Select "m-BCA", then select "m-Transfer"',
-          'Enter your Virtual Account Number <bold>{{fullPaymentCode}}</bold>, then press "OK"':
-            'Enter your Virtual Account Number <bold>{{fullPaymentCode}}</bold>, then press "OK"',
-          'Click on "Send" button at the top right corner to proceed':
-            'Click on "Send" button at the top right corner to proceed',
-          'Click "OK" to proceed': 'Click "OK" to proceed',
-          "Enter your PIN to authorize the transaction":
-            "Enter your PIN to authorize the transaction",
-        },
-      },
-      {
-        title: "Transaction Completed",
-        steps: {
-          "Your transaction is successful": "Your transaction is successful",
-          "Once the payment transaction is completed, this invoice will be updated automatically. This may take up to 5 minutes":
-            "Once the payment transaction is completed, this invoice will be updated automatically. This may take up to 5 minutes",
+          "Login pada aplikasi KlikBCA Individual": "Login pada aplikasi KlikBCA Individual",
+          "Masukkan User ID dan PIN": "Masukkan User ID dan PIN",
+          "Pilih Transfer Dana > Transfer ke BCA Virtual Account": "Pilih Transfer Dana > Transfer ke BCA Virtual Account",
+          "Masukkan nomor Virtual Account <bold>{{fullPaymentCode}}</bold>": 
+            "Masukkan nomor Virtual Account <bold>{{fullPaymentCode}}</bold>",
+          "Masukkan jumlah yang ingin dibayarkan": "Masukkan jumlah yang ingin dibayarkan",
+          "Validasi pembayaran": "Validasi pembayaran",
+          "Cetak nomor referensi transaksi sebagai bukti pembayaran": "Cetak nomor referensi transaksi sebagai bukti pembayaran",
         },
       },
     ],
   },
 
-  // --- MANDIRI (Object Structure - Contains {{companyCode}}) ---
+  // --- MANDIRI (Bill Payment - BEDA DENGAN VA BIASA) ---
   MANDIRI: {
     "livin by mandiri": [
       {
-        title: "Log In To Your Account",
+        title: "Livin' by Mandiri (Aplikasi Kuning)",
         steps: {
-          "Open Livin by Mandiri, then enter your PASSWORD or do face verification":
-            "Open Livin by Mandiri, then enter your PASSWORD or do face verification",
-          'Select "IDR Transfer"': 'Select "IDR Transfer"',
-          'Select "Transfer to new recipient"':
-            'Select "Transfer to new recipient"',
-        },
-      },
-      {
-        title: "Payment Details",
-        steps: {
-          "Enter your Virtual Account Number <bold>{{fullPaymentCode}}</bold>":
-            "Enter your Virtual Account Number <bold>{{fullPaymentCode}}</bold>",
-          'Confirm the VA detail and click "Continue"':
-            'Confirm the VA detail and click "Continue"',
-          "Input the amount to transfer (if not filled automatically)":
-            "Input the amount to transfer (if not filled automatically)",
-          'Review and confirm the transaction details and click "Continue"':
-            'Review and confirm the transaction details and click "Continue"',
-          "Complete the transaction by entering your MPIN":
-            "Complete the transaction by entering your MPIN",
-        },
-      },
-      {
-        title: "Transaction Completed",
-        steps: {
-          "Upon successful payment, save the transaction receipt or screenshot the screen as a proof of payment":
-            "Upon successful payment, save the transaction receipt or screenshot the screen as a proof of payment",
-          "Once the payment transaction is completed, this invoice will be updated automatically. This may take up to 5 minutes":
-            "Once the payment transaction is completed, this invoice will be updated automatically. This may take up to 5 minutes",
+          "Login ke aplikasi Livin' by Mandiri": "Login ke aplikasi Livin' by Mandiri",
+          "Pilih menu Bayar": "Pilih menu Bayar",
+          "Cari penyedia jasa <bold>Midtrans</bold> atau masukkan kode perusahaan <bold>{{companyCode}}</bold>": 
+            "Cari penyedia jasa <bold>Midtrans</bold> atau masukkan kode perusahaan <bold>{{companyCode}}</bold>",
+          "Masukkan <bold>Kode Bayar (Bill Key)</bold> Anda: <bold>{{fullPaymentCode}}</bold>": 
+            "Masukkan <bold>Kode Bayar (Bill Key)</bold> Anda: <bold>{{fullPaymentCode}}</bold>",
+          "Konfirmasi rincian pembayaran Anda, lalu tekan Lanjut": "Konfirmasi rincian pembayaran Anda, lalu tekan Lanjut",
+          "Masukkan MPIN untuk menyelesaikan transaksi": "Masukkan MPIN untuk menyelesaikan transaksi",
         },
       },
     ],
     atm: [
       {
-        title: "Find Nearest ATM",
+        title: "ATM Mandiri",
         steps: {
-          'Insert your ATM card and select "English"':
-            'Insert your ATM card and select "English"',
-          'Enter PIN, then select "ENTER"': 'Enter PIN, then select "ENTER"',
-          'Select "PAYMENT", then select "MULTI PAYMENT"':
-            'Select "PAYMENT", then select "MULTI PAYMENT"',
-        },
-      },
-      {
-        title: "Payment Details",
-        steps: {
-          "Enter company code '{{companyCode}}' ({{companyCode}} XENDIT), then press \"CORRECT\"":
-            "Enter company code '{{companyCode}}' ({{companyCode}} XENDIT), then press \"CORRECT\"",
-          'Enter Virtual Account Number <bold>{{fullPaymentCode}}</bold>, then press "CORRECT"':
-            'Enter Virtual Account Number <bold>{{fullPaymentCode}}</bold>, then press "CORRECT"',
-          'Enter the amount to transfer, then press "CORRECT"':
-            'Enter the amount to transfer, then press "CORRECT"',
-          'Merchant details will be displayed, choose number 1 according to the amount billed and then press "YES"':
-            'Merchant details will be displayed, choose number 1 according to the amount billed and then press "YES"',
-          'Payment confirmation will be displayed. Select "YES", to proceed':
-            'Payment confirmation will be displayed. Select "YES", to proceed',
-        },
-      },
-      {
-        title: "Transaction Completed",
-        steps: {
-          "Keep your receipt as proof of payment":
-            "Keep your receipt as proof of payment",
-          "Your transaction is successful": "Your transaction is successful",
-          "Once the payment transaction is completed, this invoice will be updated automatically. This may take up to 5 minute":
-            "Once the payment transaction is completed, this invoice will be updated automatically. This may take up to 5 minute",
+          "Masukkan kartu ATM dan PIN": "Masukkan kartu ATM dan PIN",
+          "Pilih menu Bayar/Beli": "Pilih menu Bayar/Beli",
+          "Pilih menu Lainnya > Lainnya > Multi Payment": "Pilih menu Lainnya > Lainnya > Multi Payment",
+          "Masukkan Kode Perusahaan / Biller Code <bold>{{companyCode}}</bold> (Midtrans)": 
+            "Masukkan Kode Perusahaan / Biller Code <bold>{{companyCode}}</bold> (Midtrans)",
+          "Masukkan <bold>Kode Bayar (Bill Key)</bold>: <bold>{{fullPaymentCode}}</bold>": 
+            "Masukkan <bold>Kode Bayar (Bill Key)</bold>: <bold>{{fullPaymentCode}}</bold>",
+          "Konfirmasi rincian pembayaran, lalu tekan Ya": "Konfirmasi rincian pembayaran, lalu tekan Ya",
         },
       },
     ],
   },
 
-  // --- BRI (Object Structure) ---
-  BRI: {
+  // --- BNI ---
+  BNI: {
     atm: [
       {
-        title: "Find Nearest ATM",
+        title: "ATM BNI",
         steps: {
-          "Insert the card, select the language and then enter your PIN":
-            "Insert the card, select the language and then enter your PIN",
-          'Select "Other Menu" and select "Payment"':
-            'Select "Other Menu" and select "Payment"',
-          'Select "Other Payment" and select "Briva"':
-            'Select "Other Payment" and select "Briva"',
-        },
-      },
-      {
-        title: "Payment Details",
-        steps: {
-          "Enter virtual account number <bold>{{fullPaymentCode}}</bold> and the nominal that you want to pay":
-            "Enter virtual account number <bold>{{fullPaymentCode}}</bold> and the nominal that you want to pay",
-          'Check the transaction data and press "YES"':
-            'Check the transaction data and press "YES"',
-        },
-      },
-      {
-        title: "Transaction Completed",
-        steps: {
-          "Once the payment transaction is completed, this invoice will be updated automatically. This may take up to 5 minute":
-            "Once the payment transaction is completed, this invoice will be updated automatically. This may take up to 5 minute",
+          "Masukkan Kartu ATM BNI & PIN": "Masukkan Kartu ATM BNI & PIN",
+          "Pilih menu Lainnya > Transfer > ke Rekening BNI Virtual Account": 
+            "Pilih menu Lainnya > Transfer > ke Rekening BNI Virtual Account",
+          "Masukkan nomor Virtual Account <bold>{{fullPaymentCode}}</bold>": 
+            "Masukkan nomor Virtual Account <bold>{{fullPaymentCode}}</bold>",
+          "Periksa ulang data transaksi Anda, lalu tekan Ya": "Periksa ulang data transaksi Anda, lalu tekan Ya",
         },
       },
     ],
     mbanking: [
       {
-        title: "Log In To Your Account",
+        title: "BNI Mobile Banking",
         steps: {
-          "Login to BRI Mobile Banking, enter your USER ID and PIN":
-            "Login to BRI Mobile Banking, enter your USER ID and PIN",
-          'Select "Payment" and select "Briva"':
-            'Select "Payment" and select "Briva"',
-        },
-      },
-      {
-        title: "Payment Details",
-        steps: {
-          "Enter your Virtual Account Number <bold>{{fullPaymentCode}}</bold>, and the amount that you want to pay":
-            "Enter your Virtual Account Number <bold>{{fullPaymentCode}}</bold>, and the amount that you want to pay",
-          'Input your PIN and click "Send"': 'Input your PIN and click "Send"',
-        },
-      },
-      {
-        title: "Transaction Completed",
-        steps: {
-          "Once the payment transaction is completed, this invoice will be updated automatically. This may take up to 5 minutes":
-            "Once the payment transaction is completed, this invoice will be updated automatically. This may take up to 5 minutes",
+          "Login ke BNI Mobile Banking": "Login ke BNI Mobile Banking",
+          "Pilih menu Transfer > Virtual Account Billing": "Pilih menu Transfer > Virtual Account Billing",
+          "Pilih Input Baru, lalu masukkan nomor Virtual Account <bold>{{fullPaymentCode}}</bold>": 
+            "Pilih Input Baru, lalu masukkan nomor Virtual Account <bold>{{fullPaymentCode}}</bold>",
+          "Konfirmasi transaksi dan masukkan Password Transaksi": "Konfirmasi transaksi dan masukkan Password Transaksi",
         },
       },
     ],
   },
 
-  // --- ALFAMART (Array Structure - Direct List) ---
+  // --- BRI ---
+  BRI: {
+    atm: [
+      {
+        title: "ATM BRI",
+        steps: {
+          "Pilih menu Transaksi Lain > Pembayaran > Lainnya > BRIVA": 
+            "Pilih menu Transaksi Lain > Pembayaran > Lainnya > BRIVA",
+          "Masukkan Nomor BRIVA <bold>{{fullPaymentCode}}</bold>": 
+            "Masukkan Nomor BRIVA <bold>{{fullPaymentCode}}</bold>",
+          "Pilih Ya untuk memproses pembayaran": "Pilih Ya untuk memproses pembayaran",
+        },
+      },
+    ],
+    mbanking: [
+      {
+        title: "BRImo",
+        steps: {
+          "Login ke aplikasi BRImo": "Login ke aplikasi BRImo",
+          "Pilih menu Pembayaran > BRIVA": "Pilih menu Pembayaran > BRIVA",
+          "Masukkan nomor BRIVA <bold>{{fullPaymentCode}}</bold>": 
+            "Masukkan nomor BRIVA <bold>{{fullPaymentCode}}</bold>",
+          "Masukkan PIN BRImo untuk menyelesaikan transaksi": "Masukkan PIN BRImo untuk menyelesaikan transaksi",
+        },
+      },
+    ],
+  },
+
+  // --- PERMATA ---
+  PERMATA: {
+    atm: [
+      {
+        title: "ATM Permata / ALTO / ATM Bersama / Prima",
+        steps: {
+          "Pilih menu Transaksi Lainnya > Pembayaran > Pembayaran Lainnya > Virtual Account": 
+            "Pilih menu Transaksi Lainnya > Pembayaran > Pembayaran Lainnya > Virtual Account",
+          "Masukkan nomor Virtual Account <bold>{{fullPaymentCode}}</bold>": 
+            "Masukkan nomor Virtual Account <bold>{{fullPaymentCode}}</bold>",
+          "Di halaman konfirmasi, pastikan detil pembayaran sudah sesuai": 
+            "Di halaman konfirmasi, pastikan detil pembayaran sudah sesuai",
+        },
+      },
+    ],
+  },
+
+  // --- ALFAMART ---
   ALFAMART: [
     {
-      title: "Note",
+      title: "Alfamart / Alfamidi / Dan+Dan",
       steps: {
-        "You can make a payment to the Alfamart Group (Alfamart, Afamidi, Dan+Dan, Lawson).":
-          "You can make a payment to the Alfamart Group (Alfamart, Afamidi, Dan+Dan, Lawson).",
-        "Payments below IDR 2,5 Million are available via Alfamart, Afamidi, Dan+Dan, Lawson.":
-          "Payments below IDR 2,5 Million are available via Alfamart, Afamidi, Dan+Dan, Lawson.",
-        "Payments above IDR 2,5 Million are not available via Alfamidi.":
-          "Payments above IDR 2,5 Million are not available via Alfamidi.",
-      },
-      is_unordered: true,
-    },
-    {
-      title: "Find Nearest Branch",
-      steps: {
-        "Visit the nearest ALFAMART branch before the time on the payment code/barcode runs out":
-          "Visit the nearest ALFAMART branch before the time on the payment code/barcode runs out",
-        'Tell the cashier that you would like to make a payment to <bold>"{{merchantName}}" via Xendit</bold> or let them scan the barcode above':
-          'Tell the cashier that you would like to make a payment to <bold>"{{merchantName}}" via Xendit</bold> or let them scan the barcode above',
-      },
-    },
-    {
-      title: "Payment Details",
-      steps: {
-        "Present the payment code/barcode to the cashier and confirm that the amount is correct":
-          "Present the payment code/barcode to the cashier and confirm that the amount is correct",
-        "Inform the cashier if you want to pay using a Cash only, or mixed combination of Cash and Debit/Prepaid Card or E-wallet.":
-          "Inform the cashier if you want to pay using a Cash only, or mixed combination of Cash and Debit/Prepaid Card or E-wallet.",
-        "Maximum amount allowed pay by Cash is IDR 2,5 Million, the rest should be combined using Debit/Prepaid Card or E-wallet.":
-          "Maximum amount allowed pay by Cash is IDR 2,5 Million, the rest should be combined using Debit/Prepaid Card or E-wallet.",
-        "Proceed to make a payment with the amount on your payment code/barcode":
-          "Proceed to make a payment with the amount on your payment code/barcode",
-      },
-    },
-    {
-      title: "Transaction Completed",
-      steps: {
-        "Receive your proof of payment from the cashier":
-          "Receive your proof of payment from the cashier",
-        "Your transaction is successful": "Your transaction is successful",
+        "Kunjungi gerai Alfamart, Alfamidi, atau Dan+Dan terdekat": 
+          "Kunjungi gerai Alfamart, Alfamidi, atau Dan+Dan terdekat",
+        "Beritahu kasir bahwa Anda ingin melakukan pembayaran <bold>Midtrans</bold>": 
+          "Beritahu kasir bahwa Anda ingin melakukan pembayaran <bold>Midtrans</bold>",
+        "Tunjukkan Kode Pembayaran ke kasir: <bold>{{fullPaymentCode}}</bold>": 
+          "Tunjukkan Kode Pembayaran ke kasir: <bold>{{fullPaymentCode}}</bold>",
+        "Lakukan pembayaran sesuai nominal yang disebutkan": "Lakukan pembayaran sesuai nominal yang disebutkan",
+        "Simpan struk sebagai bukti pembayaran yang sah": "Simpan struk sebagai bukti pembayaran yang sah",
       },
     },
   ],

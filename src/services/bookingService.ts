@@ -32,5 +32,18 @@ export const bookingService = {
             console.error("❌ Fetch History Failed:", error.response?.data || error.message);
             throw error; 
         }
+    },
+
+    // [NEW] 3. Get Single Booking by Order ID (GET)
+    // PENTING: Fungsi ini dipakai di Payment Page untuk cek status (Polling)
+    getBookingByOrderId: async (orderId: string): Promise<Booking> => {
+        try {
+            // Endpoint ini harus ada di Backend: GET /bookings/:orderId
+            const response = await api.get<ApiResponse<Booking>>(`/bookings/${orderId}`);
+            return response.data.data;
+        } catch (error: any) {
+            console.error(`❌ Fetch Booking ${orderId} Failed:`, error.response?.data || error.message);
+            throw error;
+        }
     }
 };

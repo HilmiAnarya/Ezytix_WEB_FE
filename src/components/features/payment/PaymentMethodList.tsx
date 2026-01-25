@@ -1,15 +1,17 @@
 import React, { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { PAYMENT_GROUPS, PaymentType } from "../../../data/paymentStaticData"; // Import type juga
+// Pastikan path import ini sesuai dengan struktur folder kamu
+import { PAYMENT_GROUPS, PaymentType } from "../../../data/paymentStaticData";
 
 // [UPDATED] Interface Props
-// onSelectMethod sekarang menerima Type juga, bukan cuma Code.
+// Kita ubah 'selectedMethod' -> 'selectedMethodCode' agar konsisten dengan Parent Page
 interface Props {
-    selectedMethod: string | null;
+    selectedMethodCode: string | null;
     onSelectMethod: (code: string, type: PaymentType) => void;
 }
 
-export const PaymentMethodList: React.FC<Props> = ({ selectedMethod, onSelectMethod }) => {
+export const PaymentMethodList: React.FC<Props> = ({ selectedMethodCode, onSelectMethod }) => {
+    // Default expand group pertama (Bank Transfer) agar user langsung lihat opsi
     const [expandedId, setExpandedId] = useState<string | null>("bank_transfer");
 
     const toggleExpand = (id: string) => {
@@ -79,7 +81,7 @@ export const PaymentMethodList: React.FC<Props> = ({ selectedMethod, onSelectMet
                                                 className={`
                                                     relative px-3 py-3 border rounded-xl text-sm font-medium transition-all duration-200 
                                                     flex flex-col items-center justify-center gap-2 h-24
-                                                    ${selectedMethod === channel.code
+                                                    ${selectedMethodCode === channel.code
                                                         ? "bg-red-50 border-red-500 text-red-700 shadow-md ring-1 ring-red-200 transform scale-[1.02]"
                                                         : "bg-white border-gray-200 text-gray-600 hover:border-red-200 hover:bg-white hover:shadow-sm hover:-translate-y-0.5"
                                                     }
@@ -92,7 +94,6 @@ export const PaymentMethodList: React.FC<Props> = ({ selectedMethod, onSelectMet
                                                         alt={channel.name} 
                                                         className="h-8 w-auto object-contain mb-1"
                                                         onError={(e) => {
-                                                            // Fallback jika gambar error
                                                             (e.target as HTMLImageElement).style.display = 'none'; 
                                                         }}
                                                     />
@@ -107,7 +108,7 @@ export const PaymentMethodList: React.FC<Props> = ({ selectedMethod, onSelectMet
                                                 </span>
 
                                                 {/* Checkmark Icon jika selected */}
-                                                {selectedMethod === channel.code && (
+                                                {selectedMethodCode === channel.code && (
                                                     <div className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></div>
                                                 )}
                                             </button>

@@ -1,10 +1,8 @@
-
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { FiLoader, FiArrowLeft } from "react-icons/fi";
 
-// Components
+// Components (Sudah di-refactor di Step 3.3.1 & 3.3.2)
 import { PaymentInfoCard } from "../../components/features/payment/PaymentInfoCard";
 import { PaymentInstructionList } from "../../components/features/payment/PaymentInstructionList";
 import { FlightSummaryCard } from "../../components/features/payment/FlightSummaryCard";
@@ -14,7 +12,8 @@ import { SimplePaymentNavbar } from "../../components/layout/SimplePaymentNavbar
 import { bookingService } from "../../services/bookingService";
 import { PAYMENT_INSTRUCTION_DATA } from "../../data/PaymentInstructionData";
 import { Booking } from "../../types/booking";
-import { InitiatePaymentResponse, PaymentInstructions } from "../../types/payment";
+// [FIX] Gunakan type yang benar
+import { InitiatePaymentResponse } from "../../types/payment";
 
 export const PaymentWaitingPage: React.FC = () => {
     const { orderId } = useParams<{ orderId: string }>();
@@ -22,147 +21,169 @@ export const PaymentWaitingPage: React.FC = () => {
     const location = useLocation();
 
     // --- 1. SESSION STORAGE LOGIC (SOLUSI REFRESH PAGE) ---
-    // Kita gunakan key unik berdasarkan orderId agar data tidak tertukar antar pesanan
+    // Agar data payment (VA/QR) tidak hilang saat user refresh halaman
     const SESSION_KEY = `payment_session_${orderId}`;
 
-    // Helper untuk load data awal (State Priority -> Storage Fallback)
     const loadInitialData = (): InitiatePaymentResponse | undefined => {
+        // Prioritas 1: Ambil dari State navigasi (Fresh dari halaman sebelumnya)
         if (location.state?.paymentData) {
-            return location.state.paymentData;
+            const data = location.state.paymentData;
+            sessionStorage.setItem(SESSION_KEY, JSON.stringify(data));
+            return data;
         }
+        // Prioritas 2: Ambil dari Session Storage (Jika user refresh)
         const saved = sessionStorage.getItem(SESSION_KEY);
         return saved ? JSON.parse(saved) : undefined;
     };
 
-    // State untuk Payment Data (BCA/Mandiri/dll)
-    const [paymentState, setPaymentState] = useState<InitiatePaymentResponse | undefined>(loadInitialData);
-
-    // State untuk Expiry (Bisa dari state navigasi atau booking nanti)
-    const [initialExpiry] = useState<string | undefined>(location.state?.expiryTime);
-
-    // Effect: Simpan ke Session Storage jika ada data baru dari location.state
-    useEffect(() => {
-        if (location.state?.paymentData) {
-            sessionStorage.setItem(SESSION_KEY, JSON.stringify(location.state.paymentData));
-            setPaymentState(location.state.paymentData);
-        }
-    }, [location.state, SESSION_KEY]);
-
-
-    // --- 2. DATA PERSISTEN (BOOKING) ---
+    const [paymentData] = useState<InitiatePaymentResponse | undefined>(loadInitialData);
     const [booking, setBooking] = useState<Booking | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [loadingBooking, setLoadingBooking] = useState(true);
 
-    // Fetch & Polling Logic
+    // --- 2. POLLING STATUS PEMBAYARAN ---
     useEffect(() => {
         if (!orderId) return;
 
-        const checkStatus = async () => {
+        let isMounted = true;
+        const fetchStatus = async () => {
             try {
-                const allBookings = await bookingService.getMyBookings();
-                const found = allBookings.find(b => b.order_id === orderId || b.booking_code === orderId);
+                // [OPTIMIZATION] Gunakan getBookingByOrderId (Step 2.1)
+                // Jangan fetch semua history, cukup satu order ini saja.
+                const updatedBooking = await bookingService.getBookingByOrderId(orderId);
+                
+                if (isMounted) {
+                    setBooking(updatedBooking);
+                    setLoadingBooking(false);
 
-                if (found) {
-                    setBooking(found);
-                    // Jika sudah PAID, bersihkan session dan redirect
-                    if (found.status === 'paid') {
-                        sessionStorage.removeItem(SESSION_KEY);
-                        navigate('/booking/success');
+                    // Auto-Redirect jika sudah paid
+                    if (updatedBooking.status === 'paid') {
+                        navigate('/booking/success', { replace: true });
                     }
                 }
-            } catch (err) {
-                console.error("Polling Error:", err);
-            } finally {
-                setLoading(false);
+            } catch (error) {
+                console.error("Polling error:", error);
             }
         };
 
-        checkStatus();
-        const interval = setInterval(checkStatus, 5000);
-        return () => clearInterval(interval);
+        // Fetch pertama kali segera
+        fetchStatus();
 
-    }, [orderId, navigate, SESSION_KEY]);
+        // Polling setiap 5 detik
+        const interval = setInterval(fetchStatus, 5000);
 
+        return () => {
+            isMounted = false;
+            clearInterval(interval);
+        };
+    }, [orderId, navigate]);
 
-    // --- 3. LOGIC TAMPILAN (MERGING) ---
+    // --- 3. DERIVED DATA FOR UI (LOGIC MAPPING) ---
+    
+    // A. Tentukan Payment Key untuk Instruksi (BCA, MANDIRI, BRI, dll)
+    const instructionKey = useMemo(() => {
+        if (!paymentData) return "";
 
-    // A. Expiry Time: State Awal -> Booking DB -> Current
-    const displayExpiry = initialExpiry || booking?.expiry_time || new Date().toISOString();
+        // Case Mandiri Bill (E-Channel)
+        if (paymentData.mandiri_bill) return "MANDIRI";
 
-    // B. Payment Method Key
-    // SEKARANG AMAN: Ambil dari paymentState (yang sudah di-backup SessionStorage)
-    const methodKey = (paymentState?.payment_method || "").toUpperCase();
+        // Case Virtual Account (Ambil bank-nya)
+        if (paymentData.virtual_account) {
+            return paymentData.virtual_account.bank.toUpperCase(); // "bca" -> "BCA"
+        }
 
-    // C. Instructions & Details
-    const instructions: PaymentInstructions | undefined = PAYMENT_INSTRUCTION_DATA[methodKey];
-    const paymentCode = paymentState?.payment_code;
-    const qrString = paymentState?.qr_string;
+        // Case QRIS (Biasanya tidak butuh instruksi kompleks, tapi kita sediakan key)
+        if (paymentData.qris) return "QRIS"; // Pastikan ada di data static jika mau ditampilkan
 
-    // --- RENDER ---
+        return "";
+    }, [paymentData]);
 
-    if (loading && !booking && !paymentState) {
-        return <div className="min-h-screen flex items-center justify-center"><FiLoader className="animate-spin text-2xl" /></div>;
+    // B. Ambil Payment Code (VA Number atau Bill Key)
+    const displayPaymentCode = useMemo(() => {
+        if (!paymentData) return "";
+        if (paymentData.virtual_account) return paymentData.virtual_account.va_number;
+        if (paymentData.mandiri_bill) return paymentData.mandiri_bill.bill_key;
+        return "";
+    }, [paymentData]);
+
+    // C. Ambil Biller Code (Khusus Mandiri)
+    const displayBillerCode = paymentData?.mandiri_bill?.biller_code;
+
+    // --- 4. RENDER ---
+    
+    // Safety check jika data hilang sama sekali
+    if (!paymentData && !loadingBooking) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center p-4">
+                <p className="text-gray-500 mb-4">Data sesi pembayaran berakhir.</p>
+                <button 
+                    onClick={() => navigate(`/payment/${orderId}/select`)}
+                    className="text-red-600 font-semibold hover:underline"
+                >
+                    Ulangi Pemilihan Metode Pembayaran
+                </button>
+            </div>
+        );
     }
 
-    // Jika benar-benar kosong (User clear cache / ganti device) -> Baru tampilkan fallback minim
-    // Tapi UI tidak berubah drastis, hanya konten kosong.
-    const isDataMissing = !methodKey && !booking;
+    // Gunakan expiry time dari payment response (priority) atau booking data
+    const finalExpiryTime = paymentData?.expiry_time || booking?.expiry_time || new Date().toISOString();
 
     return (
         <div className="min-h-screen bg-gray-50 pb-20">
-            <SimplePaymentNavbar expiryTime={displayExpiry} />
+            <SimplePaymentNavbar />
 
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 pt-24">
-
-                <button
-                    onClick={() => navigate(`/payment/${orderId}/select`)}
-                    className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-6 transition-colors"
+            <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 pt-24">
+                
+                {/* Back Button (Mobile only logic sometimes) */}
+                <button 
+                    onClick={() => navigate(-1)} 
+                    className="mb-6 flex items-center gap-2 text-gray-500 hover:text-gray-900 transition-colors"
                 >
-                    <FiArrowLeft /> Ganti Metode Pembayaran
+                    <FiArrowLeft /> Kembali
                 </button>
 
-                <div className="grid grid-cols-1 md:grid-cols-[1fr_320px] gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-[1fr_350px] gap-8">
 
-                    <div className="space-y-6">
-                        {/* Payment Info Card */}
+                    {/* KOLOM KIRI: Payment Info & Instruksi */}
+                    <div className="space-y-8">
+                        
+                        {/* 1. Payment Info Card (VA / QR Display) */}
                         <PaymentInfoCard
-                            orderId={booking?.booking_code || orderId || ""}
+                            orderId={orderId || "-"}
                             bookingDate={booking?.created_at || new Date().toISOString()}
-                            amount={paymentState?.amount || (booking ? parseFloat(booking.total_amount) : 0)}
-                            status={booking?.status || 'pending'}
-                            expiryTime={displayExpiry}
-
-                            paymentMethod={methodKey}
-                            paymentCode={paymentCode}
-                            qrString={qrString}
+                            amount={parseFloat(paymentData?.amount?.toString() || booking?.total_amount || "0")}
+                            status={booking?.status || "pending"}
+                            expiryTime={finalExpiryTime}
+                            paymentMethodName={instructionKey} // Label header
+                            
+                            // [CRITICAL] Pass full object ke komponen refactor Step 3.3.1
+                            paymentData={paymentData} 
                         />
 
-                        {/* Instruction List */}
-                        {instructions ? (
+                        {/* 2. Instruction List (Accordion) */}
+                        {instructionKey && PAYMENT_INSTRUCTION_DATA[instructionKey] ? (
                             <PaymentInstructionList
-                                instructions={instructions}
-                                paymentCode={paymentCode}
+                                instructions={PAYMENT_INSTRUCTION_DATA[instructionKey]}
+                                
+                                // [CRITICAL] Props untuk komponen refactor Step 3.3.2
+                                paymentCode={displayPaymentCode}
+                                billerCode={displayBillerCode}
                             />
                         ) : (
-                            // Tampilan sopan jika data instruksi hilang (jarang terjadi dgn session storage)
-                            <div className="p-6 bg-white rounded-xl border border-gray-200 text-center shadow-sm">
-                                <p className="text-gray-500 mb-4">Detail instruksi tidak dapat dimuat.</p>
-                                <button
-                                    onClick={() => navigate(`/payment/${orderId}/select`)}
-                                    className="text-primary font-semibold hover:underline"
-                                >
-                                    Muat Ulang Metode Pembayaran
-                                </button>
-                            </div>
+                            // Fallback jika tidak ada instruksi (misal QRIS scan only)
+                            null 
                         )}
                     </div>
 
+                    {/* KOLOM KANAN: Flight Summary (Sticky) */}
                     <div className="order-first md:order-last">
                         <div className="md:sticky md:top-24">
                             {booking ? (
                                 <FlightSummaryCard booking={booking} />
                             ) : (
-                                <div className="bg-white p-4 rounded-xl animate-pulse h-48"></div>
+                                <div className="bg-white border border-gray-200 rounded-xl p-6 h-64 flex items-center justify-center">
+                                    <FiLoader className="animate-spin text-gray-300 text-3xl" />
+                                </div>
                             )}
                         </div>
                     </div>

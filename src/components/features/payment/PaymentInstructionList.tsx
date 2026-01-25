@@ -3,16 +3,23 @@ import React, { useState, useMemo } from "react";
 import { ChevronDown, ChevronUp, Info, Smartphone, Monitor, CreditCard, Store } from "lucide-react";
 import { PaymentInstructions, InstructionGroup } from "../../../types/payment";
 
+// [UPDATED] Interface Props
+// Tambahkan billerCode untuk menangani Mandiri (Company Code)
 interface Props {
   instructions?: PaymentInstructions;
-  paymentCode?: string;
+  paymentCode?: string; // Untuk VA Number atau Bill Key
+  billerCode?: string;  // [NEW] Untuk Mandiri Company Code
 }
 
-export const PaymentInstructionList: React.FC<Props> = ({ instructions, paymentCode }) => {
+export const PaymentInstructionList: React.FC<Props> = ({ 
+  instructions, 
+  paymentCode,
+  billerCode 
+}) => {
   // 1. State: User Selection
   const [userSelectedTab, setUserSelectedTab] = useState<string | null>(null);
   
-  // Default open index = 0 (Accordion paling atas selalu terbuka di awal)
+  // Default open index = 0
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   // 2. Deteksi Struktur Data
@@ -26,14 +33,9 @@ export const PaymentInstructionList: React.FC<Props> = ({ instructions, paymentC
   }, [instructions, isArray]);
 
   // 3. Derived State: Active Tab
-  // Menentukan tab mana yang aktif saat ini.
-  // Prioritas: Pilihan User -> Default ke Kategori Pertama -> String Kosong
   const activeTab = (userSelectedTab && categories.includes(userSelectedTab)) 
       ? userSelectedTab 
       : (categories.length > 0 ? categories[0] : "");
-
-  // [FIX] HAPUS useEffect yang menyebabkan Cascading Render.
-  // Kita tidak butuh useEffect untuk mereset openIndex. Kita lakukan di onClick handler.
 
   // Safety Check
   if (!instructions || (isArray && (instructions as any[]).length === 0) || (!isArray && categories.length === 0)) {
@@ -66,12 +68,22 @@ export const PaymentInstructionList: React.FC<Props> = ({ instructions, paymentC
 
   const parseInstructionText = (text: string) => {
     let cleanText = text;
+    
+    // [FIX] Replace Placeholders dengan Data Real
     if (paymentCode) cleanText = cleanText.replace(/{{fullPaymentCode}}/g, paymentCode);
-    cleanText = cleanText.replace(/{{companyCode}}/g, "88888");
+    
+    // [FIX] Gunakan billerCode dari props atau default Midtrans (70012)
+    const companyCode = billerCode || "70012"; 
+    cleanText = cleanText.replace(/{{companyCode}}/g, companyCode);
+    
     cleanText = cleanText.replace(/{{merchantName}}/g, "Ezytix");
     
+    // Quick Fix: Hapus referensi kompetitor jika ada di data lama
+    cleanText = cleanText.replace(/Xendit/g, "Midtrans");
+
+    // Formatting Tags
     cleanText = cleanText
-      .replace(/<bold>/g, "<strong>")
+      .replace(/<bold>/g, "<strong class='font-semibold text-gray-900'>")
       .replace(/<\/bold>/g, "</strong>")
       .replace(/<anchor>/g, "<span class='text-blue-600 underline cursor-pointer'>")
       .replace(/<\/anchor>/g, "</span>");
@@ -82,11 +94,11 @@ export const PaymentInstructionList: React.FC<Props> = ({ instructions, paymentC
   // --- Handler ---
   const handleTabClick = (cat: string) => {
     setUserSelectedTab(cat);
-    setOpenIndex(0); // [SOLUSI] Reset accordion langsung saat user klik tab
+    setOpenIndex(0); 
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+    <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden mt-6">
       
       {/* Header */}
       <div className="p-4 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
@@ -100,7 +112,7 @@ export const PaymentInstructionList: React.FC<Props> = ({ instructions, paymentC
           {categories.map((cat) => (
             <button
               key={cat}
-              onClick={() => handleTabClick(cat)} // Panggil handler baru
+              onClick={() => handleTabClick(cat)}
               className={`flex items-center gap-2 px-4 py-3 text-xs font-bold whitespace-nowrap transition-colors border-b-2 
                 ${activeTab === cat 
                   ? "border-red-600 text-red-600 bg-red-50/30" 

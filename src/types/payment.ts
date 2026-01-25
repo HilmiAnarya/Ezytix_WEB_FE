@@ -1,6 +1,6 @@
 // src/types/payment.ts
 
-export type BackendPaymentType = "VIRTUAL_ACCOUNT" | "QR_CODE" | "E_WALLET" | "RETAIL_OUTLET";
+export type PaymentType = 'bank_transfer' | 'echannel' | 'qris' | 'gopay';
 
 // ==========================================
 // 1. INSTRUCTION TYPES (Complex Structure)
@@ -27,21 +27,47 @@ export type PaymentInstructions =
 // ==========================================
 
 export interface InitiatePaymentRequest {
-  order_id: string;
-  payment_method: string; // "BCA", "MANDIRI", "ALFAMART", dll
-  payment_type: BackendPaymentType;
+    order_id: string;
+    
+    // Tipe pembayaran wajib
+    payment_type: PaymentType;
+    
+    // Opsional: Hanya diisi jika payment_type = 'bank_transfer'
+    // Value: 'bca', 'bni', 'bri', 'permata'
+    bank?: string; 
 }
 
 export interface InitiatePaymentResponse {
-  order_id: string;
-  payment_method: string;
+    order_id: string;
+    transaction_id: string;
+    payment_type: string;
+    amount: number;
+    transaction_status: string;
+    expiry_time: string; // Format: "2026-01-25 15:00:00 -0700"
 
-  // Field dinamis dari Xendit
-  payment_code?: string; // VA Number / Payment Code
-  qr_string?: string;    // QR String
-  deep_link?: string;    // E-Wallet Link
+    // [FIELD DINAMIS] 
+    // Backend hanya akan mengisi salah satu object di bawah ini
+    // tergantung metode yang dipilih user.
+    
+    // Case: BCA, BNI, BRI, Permata
+    virtual_account?: {
+        bank: string;
+        va_number: string;
+    };
 
-  amount: number;
-  expiry_time: string;
-  status: string; 
+    // Case: Mandiri Bill
+    mandiri_bill?: {
+        bill_key: string;
+        biller_code: string;
+    };
+
+    // Case: QRIS
+    qris?: {
+        qr_url: string;
+    };
+
+    // Case: GoPay (DeepLink)
+    gopay?: {
+        deeplink: string;
+    };
 }
