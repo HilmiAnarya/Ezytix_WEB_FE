@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 // Pastikan path import ini sesuai dengan struktur folder kamu
-import { PAYMENT_GROUPS, PaymentType } from "../../../data/paymentStaticData";
+import { PAYMENT_GROUPS} from "../../../data/paymentStaticData";
+import { PaymentType } from "../../../types/payment";
 
 // [UPDATED] Interface Props
 // Kita ubah 'selectedMethod' -> 'selectedMethodCode' agar konsisten dengan Parent Page
