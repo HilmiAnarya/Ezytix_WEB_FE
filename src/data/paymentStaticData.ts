@@ -91,7 +91,3 @@ export const PAYMENT_GROUPS: PaymentGroup[] = [
     ]
   }
 ];
-
-export {
-    PaymentType // Pastikan import ini ada
-};

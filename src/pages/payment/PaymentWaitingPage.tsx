@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { FiLoader, FiArrowLeft } from "react-icons/fi";
 
-// Components (Sudah di-refactor di Step 3.3.1 & 3.3.2)
+// Components
 import { PaymentInfoCard } from "../../components/features/payment/PaymentInfoCard";
 import { PaymentInstructionList } from "../../components/features/payment/PaymentInstructionList";
 import { FlightSummaryCard } from "../../components/features/payment/FlightSummaryCard";
@@ -12,7 +13,6 @@ import { SimplePaymentNavbar } from "../../components/layout/SimplePaymentNavbar
 import { bookingService } from "../../services/bookingService";
 import { PAYMENT_INSTRUCTION_DATA } from "../../data/PaymentInstructionData";
 import { Booking } from "../../types/booking";
-// [FIX] Gunakan type yang benar
 import { InitiatePaymentResponse } from "../../types/payment";
 
 export const PaymentWaitingPage: React.FC = () => {
@@ -20,18 +20,15 @@ export const PaymentWaitingPage: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    // --- 1. SESSION STORAGE LOGIC (SOLUSI REFRESH PAGE) ---
-    // Agar data payment (VA/QR) tidak hilang saat user refresh halaman
+    // --- 1. SESSION STORAGE LOGIC ---
     const SESSION_KEY = `payment_session_${orderId}`;
 
     const loadInitialData = (): InitiatePaymentResponse | undefined => {
-        // Prioritas 1: Ambil dari State navigasi (Fresh dari halaman sebelumnya)
         if (location.state?.paymentData) {
             const data = location.state.paymentData;
             sessionStorage.setItem(SESSION_KEY, JSON.stringify(data));
             return data;
         }
-        // Prioritas 2: Ambil dari Session Storage (Jika user refresh)
         const saved = sessionStorage.getItem(SESSION_KEY);
         return saved ? JSON.parse(saved) : undefined;
     };
@@ -40,26 +37,33 @@ export const PaymentWaitingPage: React.FC = () => {
     const [booking, setBooking] = useState<Booking | null>(null);
     const [loadingBooking, setLoadingBooking] = useState(true);
 
-    // --- 2. POLLING STATUS PEMBAYARAN ---
+    // --- 2. POLLING STATUS PEMBAYARAN (FIXED 404) ---
     useEffect(() => {
         if (!orderId) return;
 
         let isMounted = true;
+        
         const fetchStatus = async () => {
             try {
-                // [OPTIMIZATION] Gunakan getBookingByOrderId (Step 2.1)
-                // Jangan fetch semua history, cukup satu order ini saja.
-                const updatedBooking = await bookingService.getBookingByOrderId(orderId);
+                // [FIX] Gunakan getMyBookings() seperti di PaymentMethodPage
+                // Karena endpoint GET /bookings/:id ternyata 404
+                const allBookings = await bookingService.getMyBookings();
                 
-                if (isMounted) {
-                    setBooking(updatedBooking);
+                // Filter manual di sisi client
+                const foundBooking = allBookings.find(b => b.order_id === orderId || b.booking_code === orderId);
+                
+                if (isMounted && foundBooking) {
+                    setBooking(foundBooking);
                     setLoadingBooking(false);
 
                     // Auto-Redirect jika sudah paid
-                    if (updatedBooking.status === 'paid') {
+                    if (foundBooking.status === 'paid') {
                         navigate('/booking/success', { replace: true });
                     }
+                } else if (isMounted && !foundBooking) {
+                    console.warn("Booking not found in history list");
                 }
+
             } catch (error) {
                 console.error("Polling error:", error);
             }
@@ -77,27 +81,18 @@ export const PaymentWaitingPage: React.FC = () => {
         };
     }, [orderId, navigate]);
 
-    // --- 3. DERIVED DATA FOR UI (LOGIC MAPPING) ---
+    // --- 3. DERIVED DATA FOR UI ---
     
-    // A. Tentukan Payment Key untuk Instruksi (BCA, MANDIRI, BRI, dll)
+    // A. Tentukan Payment Key (BCA, MANDIRI, dll)
     const instructionKey = useMemo(() => {
         if (!paymentData) return "";
-
-        // Case Mandiri Bill (E-Channel)
         if (paymentData.mandiri_bill) return "MANDIRI";
-
-        // Case Virtual Account (Ambil bank-nya)
-        if (paymentData.virtual_account) {
-            return paymentData.virtual_account.bank.toUpperCase(); // "bca" -> "BCA"
-        }
-
-        // Case QRIS (Biasanya tidak butuh instruksi kompleks, tapi kita sediakan key)
-        if (paymentData.qris) return "QRIS"; // Pastikan ada di data static jika mau ditampilkan
-
+        if (paymentData.virtual_account) return paymentData.virtual_account.bank.toUpperCase();
+        if (paymentData.qris) return "QRIS";
         return "";
     }, [paymentData]);
 
-    // B. Ambil Payment Code (VA Number atau Bill Key)
+    // B. Ambil Payment Code
     const displayPaymentCode = useMemo(() => {
         if (!paymentData) return "";
         if (paymentData.virtual_account) return paymentData.virtual_account.va_number;
@@ -105,12 +100,11 @@ export const PaymentWaitingPage: React.FC = () => {
         return "";
     }, [paymentData]);
 
-    // C. Ambil Biller Code (Khusus Mandiri)
+    // C. Ambil Biller Code (Mandiri)
     const displayBillerCode = paymentData?.mandiri_bill?.biller_code;
 
     // --- 4. RENDER ---
     
-    // Safety check jika data hilang sama sekali
     if (!paymentData && !loadingBooking) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center p-4">
@@ -125,8 +119,9 @@ export const PaymentWaitingPage: React.FC = () => {
         );
     }
 
-    // Gunakan expiry time dari payment response (priority) atau booking data
-    const finalExpiryTime = paymentData?.expiry_time || booking?.expiry_time || new Date().toISOString();
+    // Gunakan expiry dari booking (yang baru di-fetch) atau paymentData
+    const finalExpiryTime = booking?.expiry_time || paymentData?.expiry_time || new Date().toISOString();
+    const finalAmount = booking ? parseFloat(booking.total_amount) : (paymentData ? Number(paymentData.amount) : 0);
 
     return (
         <div className="min-h-screen bg-gray-50 pb-20">
@@ -134,7 +129,6 @@ export const PaymentWaitingPage: React.FC = () => {
 
             <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 pt-24">
                 
-                {/* Back Button (Mobile only logic sometimes) */}
                 <button 
                     onClick={() => navigate(-1)} 
                     className="mb-6 flex items-center gap-2 text-gray-500 hover:text-gray-900 transition-colors"
@@ -144,35 +138,25 @@ export const PaymentWaitingPage: React.FC = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-[1fr_350px] gap-8">
 
-                    {/* KOLOM KIRI: Payment Info & Instruksi */}
+                    {/* KOLOM KIRI: Info & Instruksi */}
                     <div className="space-y-8">
-                        
-                        {/* 1. Payment Info Card (VA / QR Display) */}
                         <PaymentInfoCard
                             orderId={orderId || "-"}
                             bookingDate={booking?.created_at || new Date().toISOString()}
-                            amount={parseFloat(paymentData?.amount?.toString() || booking?.total_amount || "0")}
+                            amount={finalAmount}
                             status={booking?.status || "pending"}
                             expiryTime={finalExpiryTime}
-                            paymentMethodName={instructionKey} // Label header
-                            
-                            // [CRITICAL] Pass full object ke komponen refactor Step 3.3.1
+                            paymentMethodName={instructionKey}
                             paymentData={paymentData} 
                         />
 
-                        {/* 2. Instruction List (Accordion) */}
                         {instructionKey && PAYMENT_INSTRUCTION_DATA[instructionKey] ? (
                             <PaymentInstructionList
                                 instructions={PAYMENT_INSTRUCTION_DATA[instructionKey]}
-                                
-                                // [CRITICAL] Props untuk komponen refactor Step 3.3.2
                                 paymentCode={displayPaymentCode}
                                 billerCode={displayBillerCode}
                             />
-                        ) : (
-                            // Fallback jika tidak ada instruksi (misal QRIS scan only)
-                            null 
-                        )}
+                        ) : null}
                     </div>
 
                     {/* KOLOM KANAN: Flight Summary (Sticky) */}
