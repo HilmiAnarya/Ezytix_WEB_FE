@@ -39,7 +39,7 @@ export const PassengerForm: React.FC<Props> = ({
   // --- LOCAL STATE ---
   const [hasSingleName, setHasSingleName] = useState(false);
   const [formData, setFormData] = useState<PassengerData>({
-    title: passengerType === "infant" || passengerType === "child" ? "Mstr" : "Mr",
+    title: "tuan",
     firstName: "",
     lastName: "",
     nationality: "Indonesia",
@@ -103,9 +103,9 @@ export const PassengerForm: React.FC<Props> = ({
               value={formData.title}
               onChange={(e) => handleChange("title", e.target.value)}
             >
-              <option value="Mr">Tuan (Mr)</option>
-              <option value="Mrs">Nyonya (Mrs)</option>
-              <option value="Ms">Nona (Ms)</option>
+              <option value="tuan">Tuan (Mr)</option>
+              <option value="nyonya">Nyonya (Mrs)</option>
+              <option value="nona">Nona (Ms)</option>
             </select>
             <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 max-w-[120px]">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

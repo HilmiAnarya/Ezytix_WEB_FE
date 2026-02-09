@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState } from "react";
-import { FiChevronDown, FiDownload, FiArrowRight, FiCheckCircle } from "react-icons/fi";
+import { FiChevronDown, FiDownload, FiArrowRight, FiCheckCircle, FiFileText } from "react-icons/fi";
 import { Booking } from "../../../types/booking";
+import { bookingService } from "../../../services/bookingService";
+import { downloadBlob } from "../../../utils/downloadHelper";
 
 interface Props {
   data: Booking;
@@ -9,6 +11,10 @@ interface Props {
 
 export const ActiveBookingCard: React.FC<Props> = ({ data }) => {
   const [isOpen, setIsOpen] = useState(false);
+
+  // State untuk Loading Indicator Tombol
+  const [isDownloadingInvoice, setIsDownloadingInvoice] = useState(false);
+  const [isDownloadingTicket, setIsDownloadingTicket] = useState(false);
 
   // --- HELPER FORMATTING ---
   const formatTime = (isoString: string) => {
@@ -28,6 +34,38 @@ export const ActiveBookingCard: React.FC<Props> = ({ data }) => {
       month: "short",
       year: "2-digit",
     });
+  };
+
+  const handleDownloadInvoice = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Mencegah dropdown menutup sendiri
+    if (!data.order_id) return;
+    
+    setIsDownloadingInvoice(true);
+    try {
+      const blob = await bookingService.downloadInvoice(data.order_id);
+      downloadBlob(blob, `Invoice-${data.order_id}.pdf`);
+    } catch (error) {
+      console.error("Gagal download invoice", error);
+      alert("Gagal mengunduh invoice. Silakan coba lagi.");
+    } finally {
+      setIsDownloadingInvoice(false);
+    }
+  };
+
+  const handleDownloadTicket = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!data.booking_code) return;
+
+    setIsDownloadingTicket(true);
+    try {
+      const blob = await bookingService.downloadEticket(data.booking_code);
+      downloadBlob(blob, `Eticket-${data.booking_code}.pdf`);
+    } catch (error) {
+      console.error("Gagal download tiket", error);
+      alert("Gagal mengunduh E-Ticket.");
+    } finally {
+      setIsDownloadingTicket(false);
+    }
   };
 
   const formatDuration = (minutes: number) => {
@@ -125,16 +163,48 @@ export const ActiveBookingCard: React.FC<Props> = ({ data }) => {
       {/* DROPDOWN */}
       {isOpen && (
         <div className="bg-gray-50 px-6 py-4 border-t border-gray-100 animate-in slide-in-from-top-1">
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            
+            {/* Info Kiri */}
             <div className="text-sm text-gray-600">
               Kode Booking:{" "}
-              <span className="font-mono font-bold text-gray-900">
+              <span className="font-mono font-bold text-gray-900 text-lg ml-1">
                 {data.booking_code}
               </span>
             </div>
-            <button className="bg-red-600 text-white px-6 py-2 rounded-lg font-bold text-sm hover:bg-red-700 transition flex items-center gap-2">
-              <FiDownload /> Download Tiket
-            </button>
+
+            {/* Tombol Kanan (TANPA VALIDASI STATUS) */}
+            <div className="flex gap-3">
+              
+              {/* 1. TOMBOL INVOICE */}
+              <button
+                onClick={handleDownloadInvoice}
+                disabled={isDownloadingInvoice}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-100 rounded-lg shadow-sm transition-all disabled:opacity-50"
+              >
+                {isDownloadingInvoice ? (
+                  <span className="animate-spin h-4 w-4 border-2 border-gray-500 border-t-transparent rounded-full"/>
+                ) : (
+                  <FiFileText className="w-4 h-4" />
+                )}
+                Invoice
+              </button>
+
+              {/* 2. TOMBOL E-TICKET (Selalu Muncul) */}
+              <button
+                onClick={handleDownloadTicket}
+                disabled={isDownloadingTicket}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition-all disabled:opacity-50"
+              >
+                {isDownloadingTicket ? (
+                    <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"/>
+                ) : (
+                    <FiDownload className="w-4 h-4" />
+                )}
+                E-Ticket
+              </button>
+
+            </div>
           </div>
         </div>
       )}

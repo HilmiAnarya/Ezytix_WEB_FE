@@ -45,5 +45,21 @@ export const bookingService = {
             console.error(`❌ Fetch Booking ${orderId} Failed:`, error.response?.data || error.message);
             throw error;
         }
+    },
+
+    // [NEW] Download Invoice (By Order ID)
+    downloadInvoice: async (orderId: string): Promise<Blob> => {
+    const response = await api.get(`/bookings/${orderId}/invoice`, {
+      responseType: 'blob', // PENTING: Agar axios tidak memparsingnya sebagai JSON
+    });
+    return response.data;
+    },
+
+  // [NEW] Download E-Ticket (By Booking Code)
+    downloadEticket: async (bookingCode: string): Promise<Blob> => {
+    const response = await api.get(`/bookings/${bookingCode}/eticket`, {
+        responseType: 'blob',
+    });
+    return response.data;
     }
 };

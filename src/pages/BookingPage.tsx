@@ -153,18 +153,11 @@ const BookingPage: React.FC = () => {
 
         // Mapping Penumpang
         const backendPassengers: PassengerPayload[] = passengersData.map((p) => {
-            // Mapping Title
-            let backendTitle = "tuan";
-            const t = p.title.toLowerCase();
-            if (t.includes("mrs") || t.includes("nyonya")) backendTitle = "nyonya";
-            else if (t.includes("ms") || t.includes("nona")) backendTitle = "nona";
-            else if (t.includes("mstr")) backendTitle = "tuan"; // Anak laki-laki
-            else if (t.includes("miss")) backendTitle = "nona"; // Anak perempuan
 
             const fullName = p.lastName ? `${p.firstName} ${p.lastName}` : p.firstName;
 
             const payload: PassengerPayload = {
-                title: backendTitle,
+                title: p.title,
                 full_name: fullName,
                 dob: p.dob,
                 nationality: p.nationality
