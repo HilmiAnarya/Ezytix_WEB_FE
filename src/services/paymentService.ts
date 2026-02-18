@@ -29,9 +29,34 @@ export const paymentService = {
             // Optional: Kita bisa throw error object yang lebih rapi jika mau
             throw error;
         }
-    }
+    },
 
-    // Catatan:
-    // Tidak ada method checkStatus() di sini karena kita menggunakan 
-    // bookingService.getBookingByOrderId() untuk Polling status pembayaran.
+    // 2. [BARU] Get Payment Status by Order ID
+    // Digunakan untuk mengecek apakah order ini sedang memiliki transaksi pending
+    getPaymentByOrderId: async (orderId: string): Promise<ApiResponse<InitiatePaymentResponse>> => {
+        // Endpoint: GET /api/v1/payments/orders/:orderId
+        // Backend kamu sudah punya route ini (h.GetPaymentStatus)
+        const response = await api.get<ApiResponse<InitiatePaymentResponse>>(`/payments/orders/${orderId}`);
+        return response.data;
+    },
+
+    // 3. [BARU] Cancel Payment
+    // Digunakan saat user ingin mengganti metode pembayaran.
+    // Kita harus cancel yang lama dulu sebelum initiate yang baru.
+    cancelPayment: async (orderId: string): Promise<any> => {
+        try {
+            console.log(`⚠️ Requesting cancellation for Order ID: ${orderId}`);
+            // [SYNCED] Endpoint sesuai Backend: POST /api/v1/payments/orders/:orderID/cancel
+            const response = await api.post(`/payments/orders/${orderId}/cancel`);
+            return response.data;
+        } catch (error: any) {
+            // Jika error 404 (sudah tidak ada record), kita anggap sukses saja karena tujuannya memang membersihkan
+            if (error.response?.status === 404) {
+                console.warn("⚠️ Transaction not found, maybe already cleared.");
+                return { status: "success" };
+            }
+            console.error(`❌ Cancel Payment Failed:`, error.response?.data?.message || error.message);
+            throw error;
+        }
+    }
 };

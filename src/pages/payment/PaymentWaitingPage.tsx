@@ -20,7 +20,7 @@ export const PaymentWaitingPage: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    // --- 1. SESSION STORAGE LOGIC ---
+    // --- 1. SESSION STORAGE LOGIC (TIDAK DIUBAH) ---
     const SESSION_KEY = `payment_session_${orderId}`;
 
     const loadInitialData = (): InitiatePaymentResponse | undefined => {
@@ -34,10 +34,12 @@ export const PaymentWaitingPage: React.FC = () => {
     };
 
     const [paymentData] = useState<InitiatePaymentResponse | undefined>(loadInitialData);
-    const [booking, setBooking] = useState<Booking | null>(null);
+    
+    // [UBAH 1] State Booking menjadi Array (Bookings)
+    const [bookings, setBookings] = useState<Booking[]>([]); 
     const [loadingBooking, setLoadingBooking] = useState(true);
 
-    // --- 2. POLLING STATUS PEMBAYARAN (FIXED 404) ---
+    // --- 2. POLLING STATUS PEMBAYARAN ---
     useEffect(() => {
         if (!orderId) return;
 
@@ -45,22 +47,20 @@ export const PaymentWaitingPage: React.FC = () => {
         
         const fetchStatus = async () => {
             try {
-                // [FIX] Gunakan getMyBookings() seperti di PaymentMethodPage
-                // Karena endpoint GET /bookings/:id ternyata 404
                 const allBookings = await bookingService.getMyBookings();
                 
-                // Filter manual di sisi client
-                const foundBooking = allBookings.find(b => b.order_id === orderId || b.booking_code === orderId);
+                // [UBAH 2] Gunakan .filter untuk mengambil SEMUA booking (Array) dalam 1 Order ID
+                const relatedBookings = allBookings.filter(b => b.order_id === orderId);
                 
-                if (isMounted && foundBooking) {
-                    setBooking(foundBooking);
+                if (isMounted && relatedBookings.length > 0) {
+                    setBookings(relatedBookings); // Simpan Array
                     setLoadingBooking(false);
 
-                    // Auto-Redirect jika sudah paid
-                    if (foundBooking.status === 'paid') {
+                    // Cek status dari booking pertama (asumsi status sinkron)
+                    if (relatedBookings[0].status === 'paid') {
                         navigate('/booking/success', { replace: true });
                     }
-                } else if (isMounted && !foundBooking) {
+                } else if (isMounted && relatedBookings.length === 0) {
                     console.warn("Booking not found in history list");
                 }
 
@@ -69,10 +69,7 @@ export const PaymentWaitingPage: React.FC = () => {
             }
         };
 
-        // Fetch pertama kali segera
         fetchStatus();
-
-        // Polling setiap 5 detik
         const interval = setInterval(fetchStatus, 5000);
 
         return () => {
@@ -81,9 +78,8 @@ export const PaymentWaitingPage: React.FC = () => {
         };
     }, [orderId, navigate]);
 
-    // --- 3. DERIVED DATA FOR UI ---
+    // --- 3. DERIVED DATA FOR UI (LOGIKA PAYMENT TIDAK DIUBAH) ---
     
-    // A. Tentukan Payment Key (BCA, MANDIRI, dll)
     const instructionKey = useMemo(() => {
         if (!paymentData) return "";
         if (paymentData.mandiri_bill) return "MANDIRI";
@@ -92,7 +88,6 @@ export const PaymentWaitingPage: React.FC = () => {
         return "";
     }, [paymentData]);
 
-    // B. Ambil Payment Code
     const displayPaymentCode = useMemo(() => {
         if (!paymentData) return "";
         if (paymentData.virtual_account) return paymentData.virtual_account.va_number;
@@ -100,7 +95,6 @@ export const PaymentWaitingPage: React.FC = () => {
         return "";
     }, [paymentData]);
 
-    // C. Ambil Biller Code (Mandiri)
     const displayBillerCode = paymentData?.mandiri_bill?.biller_code;
 
     // --- 4. RENDER ---
@@ -119,9 +113,17 @@ export const PaymentWaitingPage: React.FC = () => {
         );
     }
 
-    // Gunakan expiry dari booking (yang baru di-fetch) atau paymentData
-    const finalExpiryTime = booking?.expiry_time || paymentData?.expiry_time || new Date().toISOString();
-    const finalAmount = booking ? parseFloat(booking.total_amount) : (paymentData ? Number(paymentData.amount) : 0);
+    // [UBAH 3] Penyesuaian Variabel UI untuk Array
+    // Ambil data umum (expiry, status) dari booking pertama
+    const firstBooking = bookings.length > 0 ? bookings[0] : null;
+    
+    // Hitung total amount dari semua booking (jika array ada isinya)
+    const totalBookingAmount = bookings.reduce((sum, item) => sum + parseFloat(item.total_amount), 0);
+
+    const finalExpiryTime = firstBooking?.expiry_time || paymentData?.expiry_time || new Date().toISOString();
+    
+    // Prioritas Amount: Total Booking Array -> Payment Data -> 0
+    const finalAmount = bookings.length > 0 ? totalBookingAmount : (paymentData ? Number(paymentData.amount) : 0);
 
     return (
         <div className="min-h-screen bg-gray-50 pb-20">
@@ -142,9 +144,9 @@ export const PaymentWaitingPage: React.FC = () => {
                     <div className="space-y-8">
                         <PaymentInfoCard
                             orderId={orderId || "-"}
-                            bookingDate={booking?.created_at || new Date().toISOString()}
+                            bookingDate={firstBooking?.created_at || new Date().toISOString()} // Pakai booking pertama
                             amount={finalAmount}
-                            status={booking?.status || "pending"}
+                            status={firstBooking?.status || "pending"} // Pakai booking pertama
                             expiryTime={finalExpiryTime}
                             paymentMethodName={instructionKey}
                             paymentData={paymentData} 
@@ -162,8 +164,9 @@ export const PaymentWaitingPage: React.FC = () => {
                     {/* KOLOM KANAN: Flight Summary (Sticky) */}
                     <div className="order-first md:order-last">
                         <div className="md:sticky md:top-24">
-                            {booking ? (
-                                <FlightSummaryCard booking={booking} />
+                            {/* [UBAH 4] Kirim Array 'bookings' ke FlightSummaryCard */}
+                            {bookings.length > 0 ? (
+                                <FlightSummaryCard bookings={bookings} />
                             ) : (
                                 <div className="bg-white border border-gray-200 rounded-xl p-6 h-64 flex items-center justify-center">
                                     <FiLoader className="animate-spin text-gray-300 text-3xl" />
