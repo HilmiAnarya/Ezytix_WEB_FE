@@ -3,7 +3,9 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { LandingPage } from "../pages/LandingPage";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
-import DashboardPage from "../pages/admin/DashboardPage";
+import { AdminLayout } from "../components/layout/admin/AdminLayout"; // Layout yang kita buat di Fase 1
+import { AdminDashboardPage } from "../pages/admin/AdminDashboardPage"; // Halaman Dashboard (Index)
+import { AdminContentPage } from "../pages/admin/AdminContentPage"; // Halaman Placeholder Konten
 
 import ProtectedRoute from "./ProtectedRoute";
 import AdminRoute from "./AdminRoute";
@@ -34,7 +36,13 @@ export default function AppRouter() {
       </Route>
 
       <Route element={<AdminRoute />}>
-        <Route path="/admin/dashboard" element={<DashboardPage />} />
+        {/* AdminLayout membungkus semua rute di dalamnya dengan Sidebar & Header */}
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<AdminDashboardPage />} /> {/* URL: /admin */}
+          <Route path="flights" element={<AdminContentPage />} /> {/* URL: /admin/flights */}
+          <Route path="bookings" element={<AdminContentPage />} /> {/* URL: /admin/bookings */}
+          <Route path="users" element={<AdminContentPage />} /> {/* URL: /admin/users */}
+        </Route>
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

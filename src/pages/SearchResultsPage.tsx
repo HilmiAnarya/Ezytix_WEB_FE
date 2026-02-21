@@ -1,19 +1,25 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, useMemo } from "react";
-import { useSearchParams, useNavigate, createSearchParams } from "react-router-dom"; 
+import { useSearchParams, useNavigate, createSearchParams, useLocation } from "react-router-dom"; 
 import { SearchResultsNavbar } from "../components/layout/SearchResultsNavbar";
 import { SearchSummary } from "../components/sections/SearchSummary";
 import { FilterBar } from "../components/sections/FilterBar";
 import { FlightCard } from "../components/ui/FlightCard";
-import { EditSearchModal } from "../components/features/search/EditSearchModal"; // [NEW] Import Modal
+import { EditSearchModal } from "../components/features/search/EditSearchModal"; 
+import { WarningModal } from "../components/common/WarningModal"; // [NEW] Import Modal
 import { flightService } from "../services/flightService";
 import { airportService } from "../services/airportService"; 
 import { Flight } from "../types/api";
 import { FiAlertCircle, FiSearch, FiCheckCircle } from "react-icons/fi";
+import { useAuth } from "../context/AuthContext"; // [NEW] Import Auth
 
 const SearchResultsPage: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const navigate = useNavigate();
+    const location = useLocation(); // [NEW] Untuk mendapatkan full URL
+
+    const { user } = useAuth(); // [NEW] Ambil data user aktif
     
     // --- STATE DATA ---
     const [flights, setFlights] = useState<Flight[]>([]);
@@ -21,8 +27,9 @@ const SearchResultsPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // [NEW] STATE MODAL
+    // --- STATE MODAL ---
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isWarningModalOpen, setIsWarningModalOpen] = useState(false); // [NEW] State Modal Login
 
     // --- STATE HEADER CONTEXT ---
     const [headerContext, setHeaderContext] = useState({
@@ -48,7 +55,6 @@ const SearchResultsPage: React.FC = () => {
             const returnDateStr = searchParams.get("return_date");
             const selectedOutboundIdStr = searchParams.get("selected_outbound_flight_id");
 
-            // Ambil rincian penumpang (Fallback ke 0 jika tidak ada)
             const adults = Number(searchParams.get("adults")) || 1;
             const children = Number(searchParams.get("children")) || 0;
             const infants = Number(searchParams.get("infants")) || 0;
@@ -67,7 +73,6 @@ const SearchResultsPage: React.FC = () => {
                 const fetchDestinationId = isReturnPhase ? Number(originIdStr) : Number(destinationIdStr);
                 const fetchDateStr = isReturnPhase ? returnDateStr! : departureDateStr;
 
-                // Hitung total penumpang untuk API searchFlights
                 const totalPassengers = adults + children + infants;
 
                 const promises: Promise<any>[] = [
@@ -127,27 +132,27 @@ const SearchResultsPage: React.FC = () => {
 
     // --- HANDLER: SAAT USER MEMILIH TIKET ---
     const handleSelectFlight = (flight: Flight) => {
+        // [NEW] Cek status login
+        if (!user) {
+            setIsWarningModalOpen(true);
+            return; // Hentikan proses jika belum login
+        }
+
         const returnDateStr = searchParams.get("return_date");
         const selectedOutboundIdStr = searchParams.get("selected_outbound_flight_id");
         
-        // Simpan semua parameter search saat ini agar tidak hilang
         const currentParams = Object.fromEntries(searchParams.entries());
         
-        // Skenario 1: Fase Pergi, tapi ada rencana pulang (Simpan ID dan reload page)
         if (returnDateStr && !selectedOutboundIdStr) {
             setSearchParams({
                 ...currentParams, 
                 selected_outbound_flight_id: flight.id.toString()
             });
             window.scrollTo({ top: 0, behavior: 'smooth' });
-        } 
-        
-        // Skenario 2: Lanjut ke Booking
-        else {
+        } else {
             const outboundId = selectedOutboundIdStr || flight.id;
             const inboundId = selectedOutboundIdStr ? flight.id : undefined;
 
-            // Buat payload URL untuk halaman Booking
             const bookingParams: any = {
                 outbound_id: outboundId.toString(),
                 adults: searchParams.get("adults") || "1",     
@@ -169,10 +174,16 @@ const SearchResultsPage: React.FC = () => {
 
     const handleFilterChange = (filters: any) => console.log("Filter:", filters);
     
-    // [NEW] HANDLER BUKA MODAL
     const handleEditSearch = () => setIsEditModalOpen(true);
 
-    // [NEW] PERSIAPAN DATA UNTUK MODAL (Initial Values)
+    // [NEW] HANDLER UNTUK TOMBOL DI DALAM MODAL
+    const handleLoginRedirect = () => {
+        // Arahkan ke login page. 
+        // Note: AuthContext milikmu otomatis menyimpan `sessionStorage.setItem("lastPath", location.pathname)`
+        // Jadi ketika login sukses, user akan otomatis dikembalikan ke halaman pencarian tiket.
+        navigate("/login");
+    };
+
     const editSearchInitialValues = useMemo(() => {
         return {
             origin: { id: Number(searchParams.get("origin")), code: headerContext.originCode, city_name: headerContext.originCity } as any,
@@ -200,7 +211,7 @@ const SearchResultsPage: React.FC = () => {
                     dateFormatted={headerContext.dateFormatted}
                     passengers={headerContext.passengers}
                     seatClass={headerContext.seatClass}
-                    onEditSearch={handleEditSearch} // Pasang Handler di sini
+                    onEditSearch={handleEditSearch}
                 />
 
                 {headerContext.isReturnPhase && selectedOutboundFlight && (
@@ -286,11 +297,18 @@ const SearchResultsPage: React.FC = () => {
                 </div>
             </div>
 
-            {/* --- [NEW] EDIT SEARCH MODAL --- */}
+            {/* --- MODAL EDIT SEARCH --- */}
             <EditSearchModal 
                 isOpen={isEditModalOpen} 
                 onClose={() => setIsEditModalOpen(false)}
                 initialValues={editSearchInitialValues}
+            />
+
+            {/* --- [NEW] LOGIN WARNING MODAL --- */}
+            <WarningModal 
+                open={isWarningModalOpen}
+                onClose={() => setIsWarningModalOpen(false)}
+                onLogin={handleLoginRedirect}
             />
         </div>
     );

@@ -149,9 +149,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // ========================
     useEffect(() => {
         if (!location.pathname.startsWith("/login") && !location.pathname.startsWith("/register")) {
-            sessionStorage.setItem("lastPath", location.pathname);
+            // [DIUBAH DI SINI] Gabungkan pathname dan search agar parameter URL tidak hilang
+            const fullPath = location.pathname + location.search;
+            sessionStorage.setItem("lastPath", fullPath);
         }
-    }, [location.pathname]);
+    }, [location.pathname, location.search]);
 
     return (
         <AuthContext.Provider

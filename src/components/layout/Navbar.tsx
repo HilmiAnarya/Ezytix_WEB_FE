@@ -104,7 +104,8 @@ export const Navbar: React.FC = () => {
                         </>
                     ) : (
                         <Link
-                            to="/profile"
+                            // [DIUBAH DISINI] Jika role admin, arahkan ke /admin
+                            to={user.role === "admin" ? "/admin" : "/profile"}
                             className={`flex items-center gap-3 pl-2 pr-4 py-1.5 rounded-full border transition-all duration-300 group ${
                                 isScrolled 
                                     ? "border-gray-200 bg-gray-50 hover:border-red-200" 
@@ -157,7 +158,8 @@ export const Navbar: React.FC = () => {
                             </Link>
 
                             <Link
-                                to="/profile"
+                                // [DIUBAH DISINI] Jika role admin, arahkan ke /admin
+                                to={user.role === "admin" ? "/admin" : "/profile"}
                                 onClick={() => setOpenMobile(false)}
                                 className="flex items-center gap-4 mt-4 p-3 bg-gray-50 rounded-xl"
                             >
@@ -166,7 +168,10 @@ export const Navbar: React.FC = () => {
                                 </div>
                                 <div className="flex flex-col">
                                     <span className="text-gray-900 font-bold">{user.full_name}</span>
-                                    <span className="text-xs text-gray-500">Lihat Profil</span>
+                                    {/* [DIUBAH DISINI] Teks keterangan menyesuaikan role */}
+                                    <span className="text-xs text-gray-500">
+                                        {user.role === "admin" ? "Buka Admin Panel" : "Lihat Profil"}
+                                    </span>
                                 </div>
                             </Link>
                         </>

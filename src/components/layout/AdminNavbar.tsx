@@ -26,7 +26,6 @@ const AdminNavbar: React.FC = () => {
                 {/* Desktop Nav */}
                 <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
                     <Link to="/" className="text-gray-800 hover:text-black">Home</Link>
-                    <Link to="/tiket" className="text-gray-800 hover:text-black">Pesan Tiket</Link>
                     <Link to="/partner" className="text-gray-800 hover:text-black">Jadi Partner</Link>
                     <Link to="/riwayat" className="text-gray-800 hover:text-black">Riwayat Pemesanan</Link>
                 </nav>
