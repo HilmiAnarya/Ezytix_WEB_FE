@@ -2,20 +2,15 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { SimpleNavbar } from "../components/layout/SimpleNavbar";
-
-// Components
 import { BookerInfoCard } from "../components/booking/BookerInfoCard";
 import { PassengerForm, PassengerData } from "../components/booking/PassengerForm";
 import { BookingSidebar } from "../components/booking/BookingSidebar";
 import { BookingActionFooter } from "../components/booking/BookingActionFooter";
-
-// Services & Types
 import { flightService } from "../services/flightService";
 import { bookingService } from "../services/bookingService";
 import { Flight } from "../types/api";
 import { CreateBookingRequest, BookingItemPayload, PassengerPayload } from "../types/booking";
 
-// --- HELPER: Generator Tipe Penumpang ---
 const generatePassengerList = (
     adults: number,
     children: number,
@@ -31,30 +26,19 @@ const generatePassengerList = (
 const BookingPage: React.FC = () => {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
-
-    // --- 1. STATE MANAGEMENT ---
     const [loading, setLoading] = useState(true);
     const [isProcessing, setIsProcessing] = useState(false);
-
     const [outboundFlight, setOutboundFlight] = useState<Flight | null>(null);
     const [inboundFlight, setInboundFlight] = useState<Flight | null>(null);
-
-    // Ambil parameter jumlah penumpang
     const adultsCount = Number(searchParams.get("adults")) || 1;
     const childrenCount = Number(searchParams.get("children")) || 0;
     const infantsCount = Number(searchParams.get("infants")) || 0;
     const totalPassengers = adultsCount + childrenCount + infantsCount;
-
-    // Generate List Tipe Penumpang (untuk Header Dinamis)
     const passengerTypes = useMemo(() =>
         generatePassengerList(adultsCount, childrenCount, infantsCount),
         [adultsCount, childrenCount, infantsCount]);
-
-    // State Data Form Penumpang
     const [passengersData, setPassengersData] = useState<PassengerData[]>([]);
     const [passengersValidity, setPassengersValidity] = useState<boolean[]>([]);
-
-    // --- 2. INITIAL FETCHING ---
     useEffect(() => {
         const fetchBookingContext = async () => {
             setLoading(true);
@@ -77,11 +61,8 @@ const BookingPage: React.FC = () => {
 
                 setOutboundFlight(results[0]);
                 if (results[1]) setInboundFlight(results[1]);
-
-                // Init State Array kosong sesuai jumlah penumpang
                 setPassengersData(new Array(totalPassengers).fill(null));
                 setPassengersValidity(new Array(totalPassengers).fill(false));
-
             } catch (error) {
                 console.error("Error loading booking data", error);
             } finally {
@@ -92,10 +73,6 @@ const BookingPage: React.FC = () => {
         fetchBookingContext();
     }, [searchParams, navigate, totalPassengers]);
 
-
-    // --- 3. LOGIC & CALCULATIONS ---
-
-    // A. Deteksi Internasional
     const isInternational = useMemo(() => {
         if (!outboundFlight) return false;
 
@@ -113,21 +90,16 @@ const BookingPage: React.FC = () => {
         return isOutboundIntl || isInboundIntl;
     }, [outboundFlight, inboundFlight]);
 
-    // B. Kalkulasi Harga (FIXED LOGIC)
     const { grandTotal } = useMemo(() => {
-        const count = passengersData.length; // atau totalPassengers
+        const count = passengersData.length;
 
-        // 1. Ambil Seat Class dari URL (Default Economy)
         const selectedClass = searchParams.get("seat_class") || "economy";
 
-        // 2. Helper untuk mencari harga berdasarkan kelas yang dipilih
         const getPrice = (flight: Flight | null) => {
             if (!flight) return 0;
-            // Cari kelas yang cocok (case insensitive)
             const foundClass = flight.flight_classes.find(
                 (fc) => fc.seat_class.toLowerCase() === selectedClass.toLowerCase()
             );
-            // Jika ketemu ambil harganya, jika tidak default 0
             return foundClass ? parseFloat(foundClass.price.toString()) : 0;
         };
 
@@ -139,19 +111,14 @@ const BookingPage: React.FC = () => {
             totalInbound: inPrice * count,
             grandTotal: (outPrice * count) + (inPrice * count)
         };
-    }, [outboundFlight, inboundFlight, passengersData.length, searchParams]); // searchParams added to dep array
+    }, [outboundFlight, inboundFlight, passengersData.length, searchParams]);
 
-    // C. Gatekeeper Validasi
     const isFormValid = useMemo(() => {
         return passengersValidity.length > 0 && passengersValidity.every(v => v === true);
     }, [passengersValidity]);
 
-
-    // --- 4. DATA TRANSFORMATION ---
     const transformToPayload = (): CreateBookingRequest => {
         const seatClass = searchParams.get("seat_class") || "economy";
-
-        // Mapping Penumpang
         const backendPassengers: PassengerPayload[] = passengersData.map((p) => {
 
             const fullName = p.lastName ? `${p.firstName} ${p.lastName}` : p.firstName;
@@ -193,9 +160,6 @@ const BookingPage: React.FC = () => {
         return { items };
     };
 
-
-    // --- 5. HANDLERS ---
-
     const handlePassengerUpdate = (index: number, data: PassengerData, isValid: boolean) => {
         setPassengersData(prev => {
             const newData = [...prev];
@@ -218,15 +182,11 @@ const BookingPage: React.FC = () => {
             const response = await bookingService.createBooking(payload);
 
             console.log("Booking Success:", response);
-
-            // --- [UPDATED LOGIC: REDIRECT TO INTERNAL PAYMENT PAGE WITH EXPIRY] ---
             if (response.order_id) {
-                // Navigate ke halaman Method Selection
-                // Membawa state expiry_time untuk timer dan total_amount
                 navigate(`/payment/${response.order_id}/select`, {
                     state: {
                         orderId: response.order_id,
-                        expiryTime: response.expiry_time, // KUNCI STRICT EXPIRY
+                        expiryTime: response.expiry_time,
                         totalAmount: response.total_amount
                     }
                 });
@@ -260,14 +220,8 @@ const BookingPage: React.FC = () => {
 
             <div className="pt-24 max-w-6xl mx-auto px-4 md:px-6">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative">
-
-                    {/* LEFT COLUMN */}
                     <div className="lg:col-span-8 space-y-6">
-
-                        {/* 1. Detail Pemesan (Auto-filled) */}
                         <BookerInfoCard />
-
-                        {/* 2. Form Penumpang (Dynamic Rendering) */}
                         <div className="space-y-4">
                             {passengerTypes.map((type, idx) => (
                                 <PassengerForm
@@ -279,8 +233,6 @@ const BookingPage: React.FC = () => {
                                 />
                             ))}
                         </div>
-
-                        {/* 3. Action Footer (Desktop/Mobile) */}
                         <BookingActionFooter
                             grandTotal={grandTotal}
                             isValid={isFormValid}
@@ -288,8 +240,6 @@ const BookingPage: React.FC = () => {
                             onBook={handleCreateBooking}
                         />
                     </div>
-
-                    {/* RIGHT COLUMN */}
                     <div className="lg:col-span-4">
                         <BookingSidebar
                             outboundFlight={outboundFlight}

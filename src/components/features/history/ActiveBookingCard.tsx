@@ -11,12 +11,9 @@ interface Props {
 
 export const ActiveBookingCard: React.FC<Props> = ({ data }) => {
   const [isOpen, setIsOpen] = useState(false);
-
-  // State untuk Loading Indicator Tombol
   const [isDownloadingInvoice, setIsDownloadingInvoice] = useState(false);
   const [isDownloadingTicket, setIsDownloadingTicket] = useState(false);
 
-  // --- HELPER FORMATTING ---
   const formatTime = (isoString: string) => {
     if (!isoString) return "";
     return new Date(isoString).toLocaleTimeString("id-ID", {
@@ -37,7 +34,7 @@ export const ActiveBookingCard: React.FC<Props> = ({ data }) => {
   };
 
   const handleDownloadInvoice = async (e: React.MouseEvent) => {
-    e.stopPropagation(); // Mencegah dropdown menutup sendiri
+    e.stopPropagation();
     if (!data.order_id) return;
     
     setIsDownloadingInvoice(true);
@@ -82,12 +79,10 @@ export const ActiveBookingCard: React.FC<Props> = ({ data }) => {
   return (
     <div className="bg-white border border-gray-200 rounded-xl shadow-sm mb-4 overflow-hidden transition-all duration-300 hover:shadow-md">
       <div className="flex flex-col md:flex-row items-stretch">
-        {/* LEFT CONTENT */}
         <div
           className="flex-1 flex items-center gap-5 p-5 cursor-pointer"
           onClick={() => setIsOpen(!isOpen)}
         >
-          {/* LOGO */}
           <div className="w-14 h-14 flex-shrink-0 bg-white rounded-full border border-gray-100 flex items-center justify-center p-2 shadow-sm">
             <img
               src={data.flight.airline_logo}
@@ -95,10 +90,7 @@ export const ActiveBookingCard: React.FC<Props> = ({ data }) => {
               className="w-full h-full object-contain"
             />
           </div>
-
-          {/* INFO GRID - 3 columns */}
           <div className="flex-1 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
-            {/* COL 1: Departure */}
             <div className="flex flex-col items-start">
               <div className="flex items-center gap-2 mb-2">
                 <span className="font-medium text-gray-900 text-[15px]">
@@ -119,16 +111,12 @@ export const ActiveBookingCard: React.FC<Props> = ({ data }) => {
                 {getCode(data.flight.origin)}
               </p>
             </div>
-
-            {/* COL 2: Duration - CENTERED */}
             <div className="flex flex-col items-center justify-center pt-6">
               <p className="text-[13px] font-medium text-gray-900">
                 {formatDuration(data.flight.duration_minutes)}
               </p>
               <p className="text-[11px] text-gray-500">Langsung</p>
             </div>
-
-            {/* COL 3: Arrival - RIGHT ALIGNED */}
             <div className="flex flex-col items-end pt-6">
               <p className="text-[15px] font-medium text-gray-900">
                 {formatTime(data.flight.arrival_time)}
@@ -142,11 +130,7 @@ export const ActiveBookingCard: React.FC<Props> = ({ data }) => {
             </div>
           </div>
         </div>
-
-        {/* SEPARATOR */}
         <div className="hidden md:block w-[1px] bg-gray-100 self-stretch my-4"></div>
-
-        {/* RIGHT ACTION - Fixed width for alignment */}
         <div className="w-full md:w-[140px] flex items-center justify-center p-5">
           <button
             onClick={() => setIsOpen(!isOpen)}
@@ -159,24 +143,16 @@ export const ActiveBookingCard: React.FC<Props> = ({ data }) => {
           </button>
         </div>
       </div>
-
-      {/* DROPDOWN */}
       {isOpen && (
         <div className="bg-gray-50 px-6 py-4 border-t border-gray-100 animate-in slide-in-from-top-1">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            
-            {/* Info Kiri */}
             <div className="text-sm text-gray-600">
               Kode Booking:{" "}
               <span className="font-mono font-bold text-gray-900 text-lg ml-1">
                 {data.booking_code}
               </span>
             </div>
-
-            {/* Tombol Kanan (TANPA VALIDASI STATUS) */}
             <div className="flex gap-3">
-              
-              {/* 1. TOMBOL INVOICE */}
               <button
                 onClick={handleDownloadInvoice}
                 disabled={isDownloadingInvoice}
@@ -189,8 +165,6 @@ export const ActiveBookingCard: React.FC<Props> = ({ data }) => {
                 )}
                 Invoice
               </button>
-
-              {/* 2. TOMBOL E-TICKET (Selalu Muncul) */}
               <button
                 onClick={handleDownloadTicket}
                 disabled={isDownloadingTicket}
@@ -203,7 +177,6 @@ export const ActiveBookingCard: React.FC<Props> = ({ data }) => {
                 )}
                 E-Ticket
               </button>
-
             </div>
           </div>
         </div>

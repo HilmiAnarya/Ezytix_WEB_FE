@@ -18,7 +18,6 @@ export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
     onMenuChange,
     onLogout,
 }) => {
-    // Logic untuk mengambil inisial nama (Misal: "Anton Maraton" -> "AM")
     const initials = userName
         ? userName.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
         : "U";
@@ -30,7 +29,6 @@ export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
 
     return (
         <aside className="bg-white rounded-xl border border-gray-200 p-6 w-72 shrink-0 h-fit shadow-sm">
-            {/* Profile header (Pengganti Komponen Avatar) */}
             <div className="flex items-center gap-3 mb-6">
                 <div className="relative flex h-14 w-14 shrink-0 overflow-hidden rounded-full">
                     <div className="flex h-full w-full items-center justify-center rounded-full bg-blue-600 text-white text-lg font-bold">
@@ -42,11 +40,7 @@ export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
                     <p className="text-sm text-gray-500">@{username}</p>
                 </div>
             </div>
-
-            {/* Divider */}
             <div className="border-t border-gray-200 mb-4" />
-
-            {/* Menu items */}
             <nav className="flex flex-col gap-1">
                 {menuItems.map((item) => (
                     <button
@@ -64,7 +58,6 @@ export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
                         {item.label}
                     </button>
                 ))}
-
                 <button
                     onClick={onLogout}
                     className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors text-left mt-1"

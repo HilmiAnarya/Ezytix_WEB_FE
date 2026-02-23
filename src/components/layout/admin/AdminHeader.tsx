@@ -3,10 +3,7 @@ import { useAuth } from "../../../context/AuthContext";
 
 export const AdminHeader: React.FC = () => {
     const { user } = useAuth();
-    
-    // Ambil nama dari context, fallback ke "Super Admin" kalau belum load
     const userName = user?.full_name || "Super Admin";
-    // Logic inisial: "Anton Maraton" -> "AM"
     const initials = userName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
 
     return (

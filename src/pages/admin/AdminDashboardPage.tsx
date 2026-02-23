@@ -24,7 +24,6 @@ export const AdminDashboardPage: React.FC = () => {
         fetchStats();
     }, []);
 
-    // Helper untuk format rupiah
     const formatRupiah = (amount: number) => {
         return new Intl.NumberFormat("id-ID", {
             style: "currency",

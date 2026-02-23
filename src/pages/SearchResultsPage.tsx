@@ -12,26 +12,21 @@ import { flightService } from "../services/flightService";
 import { airportService } from "../services/airportService"; 
 import { Flight } from "../types/api";
 import { FiAlertCircle, FiSearch, FiCheckCircle } from "react-icons/fi";
-import { useAuth } from "../context/AuthContext"; // [NEW] Import Auth
+import { useAuth } from "../context/AuthContext";
 
 const SearchResultsPage: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const navigate = useNavigate();
-    const location = useLocation(); // [NEW] Untuk mendapatkan full URL
-
-    const { user } = useAuth(); // [NEW] Ambil data user aktif
+    const location = useLocation();
+    const { user } = useAuth();
     
-    // --- STATE DATA ---
     const [flights, setFlights] = useState<Flight[]>([]);
     const [selectedOutboundFlight, setSelectedOutboundFlight] = useState<Flight | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // --- STATE MODAL ---
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [isWarningModalOpen, setIsWarningModalOpen] = useState(false); // [NEW] State Modal Login
-
-    // --- STATE HEADER CONTEXT ---
+    const [isWarningModalOpen, setIsWarningModalOpen] = useState(false); 
     const [headerContext, setHeaderContext] = useState({
         originCode: "...",
         originCity: "Memuat...",
@@ -43,7 +38,6 @@ const SearchResultsPage: React.FC = () => {
         isReturnPhase: false 
     });
 
-    // --- FETCHING LOGIC ---
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
@@ -129,13 +123,10 @@ const SearchResultsPage: React.FC = () => {
         fetchData();
     }, [searchParams]); 
 
-
-    // --- HANDLER: SAAT USER MEMILIH TIKET ---
     const handleSelectFlight = (flight: Flight) => {
-        // [NEW] Cek status login
         if (!user) {
             setIsWarningModalOpen(true);
-            return; // Hentikan proses jika belum login
+            return;
         }
 
         const returnDateStr = searchParams.get("return_date");
@@ -176,11 +167,7 @@ const SearchResultsPage: React.FC = () => {
     
     const handleEditSearch = () => setIsEditModalOpen(true);
 
-    // [NEW] HANDLER UNTUK TOMBOL DI DALAM MODAL
     const handleLoginRedirect = () => {
-        // Arahkan ke login page. 
-        // Note: AuthContext milikmu otomatis menyimpan `sessionStorage.setItem("lastPath", location.pathname)`
-        // Jadi ketika login sukses, user akan otomatis dikembalikan ke halaman pencarian tiket.
         navigate("/login");
     };
 
@@ -297,14 +284,12 @@ const SearchResultsPage: React.FC = () => {
                 </div>
             </div>
 
-            {/* --- MODAL EDIT SEARCH --- */}
             <EditSearchModal 
                 isOpen={isEditModalOpen} 
                 onClose={() => setIsEditModalOpen(false)}
                 initialValues={editSearchInitialValues}
             />
 
-            {/* --- [NEW] LOGIN WARNING MODAL --- */}
             <WarningModal 
                 open={isWarningModalOpen}
                 onClose={() => setIsWarningModalOpen(false)}

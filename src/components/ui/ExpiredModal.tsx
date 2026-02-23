@@ -1,4 +1,3 @@
-// src/components/ui/ExpiredModal.tsx
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertCircle } from 'lucide-react';

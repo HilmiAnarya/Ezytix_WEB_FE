@@ -1,13 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// src/services/bookingService.ts
-
 import { api } from '../lib/axios';
 import { CreateBookingRequest, CreateBookingResponse, Booking } from '../types/booking';
 import { ApiResponse } from '../types/api';
 
 export const bookingService = {
-    // 1. Create Booking (POST)
-    // Response: Order ID & Expiry Time (Strict Expiry)
     createBooking: async (payload: CreateBookingRequest): Promise<CreateBookingResponse> => {
         try {
             console.log("📤 Sending Booking Payload:", JSON.stringify(payload, null, 2));
@@ -20,8 +16,6 @@ export const bookingService = {
         }
     },
 
-    // 2. Get Booking History (GET)
-    // Response: List Booking dengan status & expiry
     getMyBookings: async (): Promise<Booking[]> => {
         try {
             console.log("📤 Fetching Booking History...");
@@ -34,11 +28,8 @@ export const bookingService = {
         }
     },
 
-    // [NEW] 3. Get Single Booking by Order ID (GET)
-    // PENTING: Fungsi ini dipakai di Payment Page untuk cek status (Polling)
     getBookingByOrderId: async (orderId: string): Promise<Booking> => {
         try {
-            // Endpoint ini harus ada di Backend: GET /bookings/:orderId
             const response = await api.get<ApiResponse<Booking>>(`/bookings/${orderId}`);
             return response.data.data;
         } catch (error: any) {
@@ -47,15 +38,13 @@ export const bookingService = {
         }
     },
 
-    // [NEW] Download Invoice (By Order ID)
     downloadInvoice: async (orderId: string): Promise<Blob> => {
     const response = await api.get(`/bookings/${orderId}/invoice`, {
-      responseType: 'blob', // PENTING: Agar axios tidak memparsingnya sebagai JSON
+        responseType: 'blob',
     });
     return response.data;
     },
 
-  // [NEW] Download E-Ticket (By Booking Code)
     downloadEticket: async (bookingCode: string): Promise<Blob> => {
     const response = await api.get(`/bookings/${bookingCode}/eticket`, {
         responseType: 'blob',

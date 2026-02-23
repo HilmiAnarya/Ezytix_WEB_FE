@@ -9,7 +9,6 @@ interface Props {
 export const HistoryBookingCard: React.FC<Props> = ({ data }) => {
     const [isOpen, setIsOpen] = useState(false);
 
-    // --- HELPER FORMATTING ---
     const formatCurrency = (amount: string) => {
         return new Intl.NumberFormat('id-ID', {
             style: 'currency',
@@ -43,21 +42,17 @@ export const HistoryBookingCard: React.FC<Props> = ({ data }) => {
         return match ? match[1] : location.substring(0, 3).toUpperCase();
     };
 
-    // Logic Status
     const isExpired = data.status === 'expired';
     
     return (
     <div
       className={`bg-white border border-gray-200 rounded-xl shadow-sm mb-4 overflow-hidden transition-all duration-300 ${isOpen ? "shadow-md border-gray-300" : "hover:shadow-md"}`}
     >
-      {/* HEADER */}
       <div className="flex flex-col md:flex-row items-stretch">
-        {/* LEFT CONTENT */}
         <div
           className="flex-1 flex items-center gap-5 p-5 cursor-pointer"
           onClick={() => setIsOpen(!isOpen)}
         >
-          {/* LOGO */}
           <div className="w-14 h-14 flex-shrink-0 bg-white rounded-full border border-gray-100 flex items-center justify-center p-2 shadow-sm">
             <img
               src={data.flight.airline_logo}
@@ -65,10 +60,7 @@ export const HistoryBookingCard: React.FC<Props> = ({ data }) => {
               className="w-full h-full object-contain"
             />
           </div>
-
-          {/* INFO GRID - 3 columns */}
           <div className="flex-1 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
-            {/* COL 1: Departure */}
             <div className="flex flex-col items-start">
               <div className="flex items-center gap-2 mb-2">
                 <span className="font-medium text-gray-900 text-[15px]">
@@ -89,16 +81,12 @@ export const HistoryBookingCard: React.FC<Props> = ({ data }) => {
                 {getCode(data.flight.origin)}
               </p>
             </div>
-
-            {/* COL 2: Duration - CENTERED */}
             <div className="flex flex-col items-center justify-center pt-6">
               <p className="text-[13px] font-medium text-gray-900">
                 {formatDuration(data.flight.duration_minutes)}
               </p>
               <p className="text-[11px] text-gray-500">Langsung</p>
             </div>
-
-            {/* COL 3: Arrival - RIGHT ALIGNED */}
             <div className="flex flex-col items-end pt-6">
               <p className="text-[15px] font-medium text-gray-900">
                 {formatTime(data.flight.arrival_time)}
@@ -112,11 +100,7 @@ export const HistoryBookingCard: React.FC<Props> = ({ data }) => {
             </div>
           </div>
         </div>
-
-        {/* SEPARATOR */}
         <div className="hidden md:block w-[1px] bg-gray-100 self-stretch my-4"></div>
-
-        {/* RIGHT - Price section with fixed width */}
         <div className="w-full md:w-[140px] flex flex-col items-center justify-center p-5">
           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
             {data.flight.seat_class || "ECONOMY"} | {data.flight.class_code || "M9"}
@@ -131,8 +115,6 @@ export const HistoryBookingCard: React.FC<Props> = ({ data }) => {
           
         </div>
       </div>
-
-      {/* FOOTER */}
       <div
         className="bg-white px-6 py-3 border-t border-gray-100 flex justify-between items-center cursor-pointer hover:bg-gray-50 transition"
         onClick={() => setIsOpen(!isOpen)}
@@ -148,8 +130,6 @@ export const HistoryBookingCard: React.FC<Props> = ({ data }) => {
           />
         </div>
       </div>
-
-      {/* DROPDOWN */}
       {isOpen && (
         <div className="bg-gray-50 px-6 py-4 border-t border-gray-100 animate-in slide-in-from-top-1">
           <div className="flex flex-col gap-2">

@@ -23,7 +23,6 @@ export const PaymentTotalCard: React.FC<Props> = ({ totalAmount, selectedMethod,
                     IDR {formatCurrency(totalAmount)}
                 </span>
             </div>
-
             <button
                 onClick={onPay}
                 disabled={!selectedMethod || loading}

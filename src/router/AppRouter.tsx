@@ -22,10 +22,10 @@ export default function AppRouter() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
-      <Route path="/search" element={<SearchResultsPage />} /> {/* Route Baru */}
+      <Route path="/search" element={<SearchResultsPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
-      <Route path="/verify-otp" element={<OTPVerificationPage />} /> {/* [BARU] Route OTP */}
+      <Route path="/verify-otp" element={<OTPVerificationPage />} />
       <Route path="/booking" element={<BookingPage />} />
       <Route path="/booking/success" element={<BookingSuccessPage />} />
       <Route path="/history" element={<BookingHistoryPage />} />
@@ -34,16 +34,14 @@ export default function AppRouter() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/payment/:orderId/select" element={<PaymentMethodPage />} />
         <Route path="/payment/:orderId/waiting" element={<PaymentWaitingPage />} />
-        {/* nanti tambah */}
       </Route>
 
       <Route element={<AdminRoute />}>
-        {/* AdminLayout membungkus semua rute di dalamnya dengan Sidebar & Header */}
         <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<AdminDashboardPage />} /> {/* URL: /admin */}
-          <Route path="flights" element={<AdminContentPage />} /> {/* URL: /admin/flights */}
-          <Route path="bookings" element={<AdminContentPage />} /> {/* URL: /admin/bookings */}
-          <Route path="users" element={<AdminContentPage />} /> {/* URL: /admin/users */}
+          <Route index element={<AdminDashboardPage />} /> 
+          <Route path="flights" element={<AdminContentPage />} />
+          <Route path="bookings" element={<AdminContentPage />} />
+          <Route path="users" element={<AdminContentPage />} /> 
         </Route>
       </Route>
 

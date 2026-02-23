@@ -1,4 +1,3 @@
-// src/components/sections/WhyEzytixSection.tsx
 import React from "react";
 import { FeatureCard } from "../ui/FeatureCard";
 import { FiCheckCircle } from "react-icons/fi";
@@ -60,15 +59,12 @@ export const WhyEzytixSection: React.FC = () => {
         viewport={{ once: true, amount: 0.3 }}
         variants={containerVariants}
       >
-        {/* TITLE */}
         <motion.h2
           className="text-3xl md:text-4xl font-bold text-center mb-14 text-gray-900"
           variants={itemVariants}
         >
           Kenapa Harus Ezytix?
         </motion.h2>
-
-        {/* GRID */}
         <motion.div
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"
           variants={containerVariants}

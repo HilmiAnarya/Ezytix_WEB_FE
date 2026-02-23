@@ -3,8 +3,6 @@ import { useLocation } from "react-router-dom";
 
 export const AdminContentPage: React.FC = () => {
     const location = useLocation();
-    
-    // Mengambil kata terakhir dari URL untuk dijadikan Judul (contoh: /admin/flights -> flights)
     const contentName = location.pathname.split("/").pop()?.replace(/-/g, " ") || "Content";
 
     return (

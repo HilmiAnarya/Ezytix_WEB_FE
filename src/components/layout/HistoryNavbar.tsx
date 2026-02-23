@@ -9,7 +9,6 @@ export const HistoryNavbar: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  // Helper untuk inisial nama
   const getInitial = (name?: string) => {
     if (!name) return "U";
     return name.charAt(0).toUpperCase();
@@ -23,8 +22,6 @@ export const HistoryNavbar: React.FC = () => {
   return (
     <header className="fixed top-0 left-0 w-full z-50 bg-white shadow-sm border-b border-gray-100 font-sans">
       <div className="max-w-7xl mx-auto px-4 lg:px-6 py-4 flex items-center justify-between">
-        
-        {/* 1. LOGO EZYTIX (MERAH) */}
         <Link to="/" className="flex items-center">
           <img 
             src={ezyRed} 
@@ -32,8 +29,6 @@ export const HistoryNavbar: React.FC = () => {
             className="h-8 md:h-9 w-auto hover:opacity-80 transition" 
           />
         </Link>
-
-        {/* 2. DESKTOP NAVIGATION */}
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600">
             {navItems.map((item) => (
                 <Link 
@@ -44,19 +39,14 @@ export const HistoryNavbar: React.FC = () => {
                     {item.label}
                 </Link>
             ))}
-
-            {/* Menu Khusus User Login */}
             {user && (
                 <Link to="/riwayat" className="hover:text-red-600 transition-colors">
                     Riwayat Pemesanan
                 </Link>
             )}
         </nav>
-
-        {/* 3. RIGHT MENU (LOGIN/PROFILE) */}
         <div className="hidden md:flex items-center gap-4">
             {!user ? (
-                // STATE: BELUM LOGIN
                 <>
                     <Link 
                         to="/login" 
@@ -72,18 +62,14 @@ export const HistoryNavbar: React.FC = () => {
                     </Link>
                 </>
             ) : (
-                // STATE: SUDAH LOGIN (PROFILE)
                 <div className="flex items-center gap-4">
                     <div 
                         onClick={() => navigate('/profile')}
                         className="flex items-center gap-3 cursor-pointer group p-1 pr-3 rounded-full hover:bg-gray-50 transition border border-transparent hover:border-gray-100"
                     >
-                        {/* Avatar Bulat */}
                         <div className="h-9 w-9 rounded-full bg-gray-800 text-white flex items-center justify-center font-bold text-sm shadow-sm group-hover:bg-red-600 transition-colors">
                             {getInitial(user.full_name)}
                         </div>
-                        
-                        {/* Nama User */}
                         <span className="text-sm font-bold text-gray-700 group-hover:text-red-600 transition-colors max-w-[120px] truncate">
                             {user.full_name}
                         </span>
@@ -91,18 +77,14 @@ export const HistoryNavbar: React.FC = () => {
                 </div>
             )}
         </div>
-
-        {/* 4. MOBILE MENU BUTTON (HAMBURGER) */}
         <button 
             className="md:hidden text-2xl text-gray-700 hover:text-red-600 transition"
             onClick={() => setOpenMobile(!openMobile)}
         >
             {openMobile ? <FiX /> : <FiMenu />}
         </button>
-      </div>
-
-      {/* 5. MOBILE DROPDOWN MENU */}
-      {openMobile && (
+    </div>
+    {openMobile && (
         <div className="md:hidden absolute top-full left-0 w-full bg-white border-t border-gray-100 shadow-lg p-4 flex flex-col gap-4 animate-fadeIn">
             {navItems.map((item) => (
                 <Link 
@@ -114,7 +96,6 @@ export const HistoryNavbar: React.FC = () => {
                     {item.label}
                 </Link>
             ))}
-
             {user ? (
                 <>
                     <Link to="/riwayat" className="text-gray-700 font-medium py-2 border-b border-gray-50 hover:text-red-600" onClick={() => setOpenMobile(false)}>
@@ -150,7 +131,7 @@ export const HistoryNavbar: React.FC = () => {
                 </div>
             )}
         </div>
-      )}
+    )}
     </header>
-  );
+);
 };

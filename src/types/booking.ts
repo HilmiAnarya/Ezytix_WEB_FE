@@ -1,32 +1,22 @@
-// src/types/booking.ts
-
-// ==========================================
-// 1. REQUEST PAYLOAD (Dikirim ke Backend)
-// ==========================================
-
 export interface PassengerPayload {
-    title: string;            // "tuan", "nyonya", "nona", "mr", "ms", "mrs"
-    full_name: string;        // Gabungan First + Last Name
-    dob: string;              // Format: YYYY-MM-DD
+    title: string;          
+    full_name: string;       
+    dob: string;           
     nationality: string;
-    passport_number?: string; // Optional
-    issuing_country?: string; // Optional
-    valid_until?: string;     // Optional
+    passport_number?: string; 
+    issuing_country?: string; 
+    valid_until?: string;  
 }
 
 export interface BookingItemPayload {
     flight_id: number;
-    seat_class: string;       // "economy", "business", "first_class"
+    seat_class: string;   
     passengers: PassengerPayload[];
 }
 
 export interface CreateBookingRequest {
     items: BookingItemPayload[];
 }
-
-// ==========================================
-// 2. RESPONSE PAYLOAD (Create Booking)
-// ==========================================
 
 export interface BookingDetailResponse {
     booking_code: string;
@@ -43,18 +33,12 @@ export interface CreateBookingResponse {
     total_amount: string;
     status: string;
     transaction_time: string;
-    expiry_time: string;       // Strict Expiry Time (ISO String)
+    expiry_time: string;    
     bookings: BookingDetailResponse[];
 }
-
-// ==========================================
-// 3. BOOKING HISTORY TYPES (GET /my-bookings)
-// ==========================================
-
-// [NEW] Interface untuk Detail Penumpang di History
 export interface PassengerDetail {
     full_name: string;
-    type: string;           // "adult", "child", "infant"
+    type: string; 
     ticket_number: string;
     seat_class: string;
 }
@@ -63,29 +47,24 @@ export interface BookingFlightDetail {
     flight_code: string;
     airline_name: string;
     airline_logo: string;
-    origin: string;          // "Jakarta (CGK)"
-    destination: string;     // "Bali (DPS)"
-    departure_time: string;  // ISO String
-    arrival_time: string;    // ISO String
+    origin: string;         
+    destination: string;   
+    departure_time: string; 
+    arrival_time: string;   
     duration_minutes: number;
-    seat_class: string;      // Contoh: "Economy"
-    class_code: string;      // Contoh: "I9", "Y"
-
-    // [NEW FIELDS] Sinkronisasi dengan Backend DTO Baru
-    duration_formatted: string; // Contoh: "1j 30m"
-    transit_info: string;       // Contoh: "Langsung", "1 Transit"
+    seat_class: string;    
+    class_code: string;   
+    duration_formatted: string; 
+    transit_info: string;    
 }
 
-// Representasi satu kartu booking di history
 export interface Booking {
     order_id: string;        
     booking_code: string;
-    status: 'pending' | 'paid' | 'cancelled' | 'failed' | 'expired'; // Update status sesuai backend
+    status: 'pending' | 'paid' | 'cancelled' | 'failed' | 'expired';
     total_amount: string;
     created_at: string;
     expiry_time?: string;    
     flight: BookingFlightDetail;
-
-    // [NEW FIELD] List Penumpang agar bisa ditampilkan di UI
     passengers: PassengerDetail[];
 }

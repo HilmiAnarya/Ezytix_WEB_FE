@@ -1,6 +1,3 @@
-// src/types/user.ts
-
-// Tipe data sesuai dengan response dari Backend (models.User)
 export interface User {
     id: number;
     full_name: string;
@@ -12,7 +9,6 @@ export interface User {
     updated_at?: string;
 }
 
-// Tipe data untuk form di UI (Mengekstrak dari AccountInfo bawaanmu)
 export interface AccountInfo {
     fullName: string;
     username: string;
@@ -20,7 +16,6 @@ export interface AccountInfo {
     phone: string;
 }
 
-// Tipe data untuk payload request saat update profile
 export interface UpdateProfileRequest {
     full_name: string;
     username: string;

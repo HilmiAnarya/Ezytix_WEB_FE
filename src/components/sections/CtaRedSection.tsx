@@ -2,10 +2,6 @@ import React from "react";
 import { motion } from "framer-motion";
 import PlaneImage from "../../assets/images/pesawat-terbang-removebg-preview.png";
 import LaptopMockup from "../../assets/images/asset-laptop-removebg-preview.png";
-
-/* =======================
-   VARIANTS
-======================= */
 const leftVariants = {
   hidden: { opacity: 0, x: -60 },
   show: {
@@ -36,10 +32,7 @@ const textItem = {
 export const CtaRedSection: React.FC = () => {
   return (
     <section className="relative w-full bg-red-600 pt-24 pb-64 overflow-hidden">
-      {/* ===== CONTENT ===== */}
       <div className="relative z-30 max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-12 items-center text-white">
-        
-        {/* LEFT – LAPTOP */}
         <motion.div
           className="flex justify-center md:justify-start"
           variants={leftVariants}
@@ -53,8 +46,6 @@ export const CtaRedSection: React.FC = () => {
             className="w-[90%] md:w-[420px] object-contain drop-shadow-2xl"
           />
         </motion.div>
-
-        {/* RIGHT – TEXT */}
         <motion.div
           variants={textContainer}
           initial="hidden"
@@ -91,8 +82,6 @@ export const CtaRedSection: React.FC = () => {
           </motion.p>
         </motion.div>
       </div>
-
-      {/* ===== PESAWAT (SUDAH FIX, JANGAN DIUTAK-ATIK) ===== */}
       <div
         className="
           absolute 
@@ -119,8 +108,6 @@ export const CtaRedSection: React.FC = () => {
           style={{ willChange: "transform" }}
         />
       </div>
-
-      {/* ===== PUTIH DIAGONAL ===== */}
       <div
         className="
           absolute 

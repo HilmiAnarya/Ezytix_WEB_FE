@@ -13,13 +13,11 @@ export const BookingHistoryPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // --- 1. FETCH DATA FROM BACKEND ---
   useEffect(() => {
     const fetchHistory = async () => {
       setLoading(true);
       try {
         const data = await bookingService.getMyBookings();
-        // SAFETY CHECK: Pastikan data selalu array, jika null ganti []
         setBookings(Array.isArray(data) ? data : []); 
       } catch (err: any) {
         console.error("Gagal mengambil riwayat:", err);
@@ -32,18 +30,10 @@ export const BookingHistoryPage: React.FC = () => {
     fetchHistory();
   }, []);
 
-  // --- 2. FILTERING LOGIC ---
   const { pendingBookings, activeBookings, historyBookings } = useMemo(() => {
-    // SAFETY CHECK LAGI: Pastikan bookings tidak null sebelum di-filter
     const safeBookings = bookings || []; 
-
-    // a. Pending: Status 'pending'
     const pending = safeBookings.filter((b) => b.status === "pending");
-
-    // b. Active: Status 'paid'
     const active = safeBookings.filter((b) => b.status === "paid");
-
-    // c. History: Status 'cancelled', 'expired', 'failed'
     const history = safeBookings.filter((b) => 
       ["cancelled", "expired", "failed"].includes(b.status)
     );
@@ -57,7 +47,6 @@ export const BookingHistoryPage: React.FC = () => {
 
   const isEmpty = bookings?.length === 0;
 
-  // --- RENDER LOADING / ERROR ---
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center gap-4">
@@ -86,8 +75,6 @@ export const BookingHistoryPage: React.FC = () => {
       <HistoryNavbar />
 
       <div className="max-w-4xl mx-auto px-4 md:px-6 pt-28 pb-10">
-        
-        {/* A. PEMBELIAN TERTUNDA */}
         {pendingBookings.length > 0 && (
           <div className="mb-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center justify-center gap-2">
@@ -104,7 +91,6 @@ export const BookingHistoryPage: React.FC = () => {
           </div>
         )}
 
-        {/* B. E-TIKET AKTIF */}
         {activeBookings.length > 0 && (
           <div className="mb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <h2 className="text-xl font-bold text-gray-900 mb-6 text-center">
@@ -118,7 +104,6 @@ export const BookingHistoryPage: React.FC = () => {
           </div>
         )}
 
-        {/* C. RIWAYAT PEMESANAN (Expired/Cancelled) */}
         {historyBookings.length > 0 && (
           <div className="mb-10 animate-in fade-in slide-in-from-bottom-4 duration-1000">
             <h2 className="text-xl font-bold text-gray-900 mb-6 text-center">
@@ -132,7 +117,6 @@ export const BookingHistoryPage: React.FC = () => {
           </div>
         )}
 
-        {/* EMPTY STATE */}
         {isEmpty && (
           <div className="flex flex-col items-center justify-center py-20 text-center opacity-60">
             <div className="bg-gray-200 p-6 rounded-full mb-4">

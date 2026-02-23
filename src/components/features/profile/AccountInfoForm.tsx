@@ -5,7 +5,7 @@ import { AccountInfo } from "../../../types/user";
 interface AccountInfoFormProps {
     initialData: AccountInfo;
     onSave: (data: AccountInfo) => void;
-    isLoading?: boolean; // Tambahan prop untuk state loading dari API
+    isLoading?: boolean;
 }
 
 export const AccountInfoForm: React.FC<AccountInfoFormProps> = ({ initialData, onSave, isLoading = false }) => {
@@ -13,7 +13,6 @@ export const AccountInfoForm: React.FC<AccountInfoFormProps> = ({ initialData, o
     const [hasChanges, setHasChanges] = useState(false);
 
     useEffect(() => {
-        // Cek apakah ada perubahan data
         const changed =
             formData.fullName !== initialData.fullName ||
             formData.username !== initialData.username ||
@@ -28,13 +27,9 @@ export const AccountInfoForm: React.FC<AccountInfoFormProps> = ({ initialData, o
 
     const handleSave = () => {
         onSave(formData);
-        // State hasChanges akan otomatis reset jika initialData dari parent terupdate
     };
 
-    // Class Tailwind untuk Input bergaya Shadcn
     const inputClassName = "flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50 transition-colors";
-    
-    // Class Tailwind untuk Label bergaya Shadcn
     const labelClassName = "text-xs font-semibold text-gray-600 mb-1.5";
 
     return (
@@ -73,7 +68,6 @@ export const AccountInfoForm: React.FC<AccountInfoFormProps> = ({ initialData, o
             </div>
 
             <div className="flex justify-end">
-                {/* Pengganti Komponen Button Shadcn */}
                 <button
                     onClick={handleSave}
                     disabled={!hasChanges || isLoading}

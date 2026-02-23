@@ -1,11 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// src/data/paymentStaticData.ts
 import { Building2, Wallet, QrCode } from "lucide-react";
 import { PaymentType } from "../types/payment"; // Pastikan import ini ada
 
 export interface PaymentChannel {
   code: string; 
-  type: PaymentType; // [UPDATED] Menggunakan tipe dari Midtrans (bank_transfer/echannel/dll)
+  type: PaymentType;
   name: string;
   logo?: string;
 }
@@ -29,7 +28,7 @@ export const PAYMENT_GROUPS: PaymentGroup[] = [
     channels: [
       { 
         code: "bca", 
-        type: "bank_transfer", // Tipe Standar
+        type: "bank_transfer",
         name: "BCA Virtual Account", 
         logo: "https://cdn.worldvectorlogo.com/logos/bca-bank-central-asia.svg" 
       },
@@ -51,7 +50,6 @@ export const PAYMENT_GROUPS: PaymentGroup[] = [
         name: "Permata Virtual Account", 
         logo: "https://upload.wikimedia.org/wikipedia/commons/b/b3/Permata_Bank_logo_%282006%29.svg" 
       },
-      // [CRITICAL FIX] Mandiri diganti jadi 'echannel'
       { 
         code: "mandiri", 
         type: "echannel", 
@@ -68,7 +66,7 @@ export const PAYMENT_GROUPS: PaymentGroup[] = [
     extra: "Instant",
     channels: [
       { 
-        code: "gopay", // Untuk QRIS via Core API biasanya pakai acquirer gopay
+        code: "gopay",
         type: "qris", 
         name: "QRIS (Scan & Pay)", 
         logo: "https://upload.wikimedia.org/wikipedia/commons/d/d4/QRIS_logo.svg" 

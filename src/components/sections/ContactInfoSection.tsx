@@ -1,4 +1,3 @@
-// src/components/sections/ContactInfoSection.tsx
 import React from "react";
 import { FiMapPin, FiMail, FiPhone, FiMessageCircle } from "react-icons/fi";
 
@@ -28,10 +27,7 @@ export const ContactInfoSection: React.FC = () => {
 
     return (
         <section className="relative w-full bg-red-600 text-white pt-24 pb-32 overflow-hidden">
-            {/* GRID */}
             <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
-
-                {/* MAP */}
                 <div className="w-full">
                     <div className="w-full h-[300px] rounded-2xl overflow-hidden shadow-xl">
                         <iframe
@@ -42,8 +38,6 @@ export const ContactInfoSection: React.FC = () => {
                         />
                     </div>
                 </div>
-
-                {/* TEXT */}
                 <div>
                     <h3 className="text-sm font-semibold tracking-widest">
                         CEPAT DAN AMAN
@@ -59,8 +53,6 @@ export const ContactInfoSection: React.FC = () => {
                     </p>
                 </div>
             </div>
-
-            {/* INFO BOX */}
             <div className="max-w-5xl mx-auto px-4 mt-16 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
                 {infoList.map((item, idx) => (
                     <div
@@ -75,8 +67,6 @@ export const ContactInfoSection: React.FC = () => {
                     </div>
                 ))}
             </div>
-
-            {/* WHITE SLOPE */}
             <div className="absolute bottom-0 left-0 w-full h-[110px] bg-white rotate-[3deg] origin-bottom-left"></div>
         </section>
     );

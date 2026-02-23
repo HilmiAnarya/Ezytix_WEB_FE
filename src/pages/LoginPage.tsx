@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// src/pages/LoginPage.tsx
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -19,8 +18,7 @@ export default function LoginPage() {
         setError("");
 
         try {
-            await login(identifier, password); 
-            // ❗ Tidak perlu redirect manual → sudah di-handle di AuthContext
+            await login(identifier, password);
         } catch (err: any) {
             setError(
                 err?.response?.data?.error ||
@@ -33,10 +31,9 @@ export default function LoginPage() {
         <div
             className="min-h-screen w-full bg-cover bg-center flex flex-col items-center justify-center px-4"
             style={{
-                backgroundImage: `url(${LoginBG})`, // ganti sesuai asetmu
+                backgroundImage: `url(${LoginBG})`,
             }}
         >
-            {/* LOGO */}
             <div className="text-center mb-6">
                 <img 
                     src={WhiteLogo}
@@ -48,7 +45,6 @@ export default function LoginPage() {
                 </p>
             </div>
 
-            {/* LOGIN CARD */}
             <div className="bg-white/90 backdrop-blur-md shadow-lg rounded-xl p-8 w-full max-w-md">
                 <h2 className="text-center text-xl font-semibold mb-4">Login</h2>
 
@@ -70,21 +66,15 @@ export default function LoginPage() {
                         className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-red-400 outline-none"
                         required
                     />
-
-                    {/* ERROR MESSAGE */}
                     {error && (
                         <p className="text-red-600 text-sm text-center">{error}</p>
                     )}
-
-                    {/* LINKS */}
                     <div className="flex justify-between text-sm mt-2">
                         <Link to="/register" className="text-red-600 font-medium">
                             Belum Punya Akun?
                         </Link>
                         <span className="text-gray-400">Lupa Kata Sandi?</span>
                     </div>
-
-                    {/* SUBMIT BUTTON */}
                     <button
                         type="submit"
                         disabled={loading}

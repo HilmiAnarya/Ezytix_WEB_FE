@@ -8,7 +8,6 @@ import { AirportCombobox } from "../ui/AirportCombobox";
 import { PassengerSelector } from "../ui/PassengerSelector";
 import { CalendarSelector } from "../ui/CalendarSelector";
 
-// --- 1. DEFINISI PROPS BARU ---
 export interface SearchBoxProps {
     initialValues?: {
         origin?: Airport;
@@ -20,11 +19,10 @@ export interface SearchBoxProps {
         infants?: number;
         seatClass?: string;
     };
-    isCompact?: boolean;       // Mode tampilan (False = Landing Page, True = Modal)
-    onSearchSubmit?: () => void; // Callback setelah search (misal: tutup modal)
+    isCompact?: boolean;
+    onSearchSubmit?: () => void;
 }
 
-// --- 2. LABEL BOX COMPONENT ---
 const BoxLabel: React.FC<{ label: string }> = ({ label }) => (
     <div className="mb-2 w-full text-left pl-1">
         <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">
@@ -33,41 +31,30 @@ const BoxLabel: React.FC<{ label: string }> = ({ label }) => (
     </div>
 );
 
-// --- 3. KOMPONEN UTAMA ---
 export const SearchBox: React.FC<SearchBoxProps> = ({ 
     initialValues, 
-    isCompact = false, // Default FALSE agar Landing Page tidak berubah
+    isCompact = false, 
     onSearchSubmit 
 }) => {
     const navigate = useNavigate();
-    
-    // STATE DATA
     const [airports, setAirports] = useState<Airport[]>([]);
     const [loadingData, setLoadingData] = useState(true);
-    
-    // FORM STATE (Inisialisasi dengan initialValues jika ada)
     const [isRoundTrip, setIsRoundTrip] = useState(!!initialValues?.returnDate);
     const [origin, setOrigin] = useState<Airport | null>(initialValues?.origin || null);
     const [destination, setDestination] = useState<Airport | null>(initialValues?.destination || null);
-    
     const today = new Date().toISOString().split('T')[0];
     const [departureDate, setDepartureDate] = useState<string>(initialValues?.departureDate || today);
     const [returnDate, setReturnDate] = useState<string>(initialValues?.returnDate || ""); 
-
     const [adults, setAdults] = useState(initialValues?.adults || 1);
     const [children, setChildren] = useState(initialValues?.children || 0);
     const [infants, setInfants] = useState(initialValues?.infants || 0);
     const [seatClass, setSeatClass] = useState(initialValues?.seatClass || "economy");
 
-    // FETCH DATA
     useEffect(() => {
         const fetchAirports = async () => {
             try {
                 const data = await airportService.getAirports();
                 setAirports(data);
-                
-                // LOGIC DEFAULT (Hanya jalan jika TIDAK ada initialValues)
-                // Agar data dari Modal tidak tertimpa default CGK/DPS
                 if (data.length > 0 && !initialValues) {
                     const defaultOrigin = data.find(a => a.code === 'CGK') || data[0];
                     setOrigin(defaultOrigin);
@@ -81,9 +68,8 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
             }
         };
         fetchAirports();
-    }, [initialValues]); // Tambahkan initialValues ke dependency (aman karena object prop jarang berubah ref kecuali parent re-render)
+    }, [initialValues]); 
 
-    // DATE LOGIC
     const addDays = (dateStr: string, days: number) => {
         const result = new Date(dateStr);
         result.setDate(result.getDate() + days);
@@ -100,7 +86,6 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
         }
     }, [isRoundTrip, departureDate]);
 
-    // HANDLERS
     const handleSwap = () => {
         const temp = origin;
         setOrigin(destination);
@@ -126,20 +111,16 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
             searchParams.return_date = returnDate;
         }
 
-        // 1. Navigasi
         navigate({
             pathname: "/search",
             search: createSearchParams(searchParams).toString()
         });
 
-        // 2. Callback (untuk menutup modal, dsb)
         if (onSearchSubmit) {
             onSearchSubmit();
         }
     };
 
-    // --- STYLE CONFIG ---
-    // Jika isCompact (Modal), hilangkan margin dan shadow besar
     const containerClasses = isCompact 
         ? "bg-white p-2" 
         : "bg-white shadow-2xl rounded-[2rem] p-6 md:p-8 border border-gray-100";
@@ -150,11 +131,7 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
 
     return (
         <div className={wrapperClasses}>
-            
-            {/* MAIN CARD */}
             <div className={containerClasses}>
-                
-                {/* 1. TRIP MODE TABS */}
                 <div className="flex gap-8 mb-6 border-b border-gray-100 pb-4">
                     <label className="flex items-center gap-3 cursor-pointer group select-none">
                         <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${!isRoundTrip ? 'border-red-600' : 'border-gray-300 group-hover:border-gray-400'}`}>
@@ -175,12 +152,7 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
                         </span>
                     </label>
                 </div>
-
-                {/* 2. GRID UTAMA */}
-                {/* Kita sesuaikan grid untuk modal agar lebih responsif di layar sempit */}
                 <div className={`grid grid-cols-1 gap-4 items-end ${isCompact ? 'xl:grid-cols-2' : 'xl:grid-cols-[minmax(0,1.2fr)_auto_minmax(0,1.2fr)_minmax(0,1.4fr)_minmax(0,1.4fr)_minmax(0,1.3fr)_auto]'}`}>
-                    
-                    {/* DARI */}
                     <div className="w-full">
                         <BoxLabel label="Dari" />
                         <AirportCombobox 
@@ -190,8 +162,6 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
                             placeholder="Jakarta (JKT)" 
                         />
                     </div>
-
-                    {/* TOMBOL SWAP (Hidden di Compact/Modal jika sempit, atau disesuaikan) */}
                     <div className={`flex justify-center mb-[5px] relative z-10 ${isCompact ? 'hidden xl:flex xl:col-span-2' : ''}`}>
                         <button 
                             onClick={handleSwap} 
@@ -201,8 +171,6 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
                             <FiRefreshCw className="text-lg" />
                         </button>
                     </div>
-
-                    {/* KE */}
                     <div className="w-full">
                         <BoxLabel label="Ke" />
                         <AirportCombobox 
@@ -213,8 +181,6 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
                             placeholder="Denpasar (DPS)" 
                         />
                     </div>
-
-                    {/* PERGI */}
                     <div className="w-full">
                         <BoxLabel label="Pergi" />
                         <CalendarSelector 
@@ -223,8 +189,6 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
                             minDate={today}
                         />
                     </div>
-
-                    {/* PULANG */}
                     <div 
                         onClick={() => !isRoundTrip && setIsRoundTrip(true)} 
                         className={`w-full ${!isRoundTrip ? 'cursor-pointer group' : ''}`}
@@ -238,8 +202,6 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
                             placeholder={!isRoundTrip ? "Pesan Pulang-Pergi" : "Pilih Tanggal"}
                         />
                     </div>
-
-                    {/* PENUMPANG & KELAS */}
                     <div className={`w-full ${isCompact ? 'xl:col-span-2' : ''}`}>
                         <BoxLabel label="Penumpang & Kelas" />
                         <PassengerSelector 
@@ -250,8 +212,6 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
                             onUpdate={(a, c, i, s) => { setAdults(a); setChildren(c); setInfants(i); setSeatClass(s); }} 
                         />
                     </div>
-
-                    {/* TOMBOL CARI */}
                     <div className={`w-full ${isCompact ? 'xl:col-span-2' : 'xl:w-auto'}`}>
                         <button 
                             onClick={handleSearch}
@@ -268,7 +228,6 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
                             )}
                         </button>
                     </div>
-
                 </div>
             </div>
         </div>

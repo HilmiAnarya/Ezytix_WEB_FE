@@ -10,7 +10,6 @@ export interface DashboardStats {
 export const adminService = {
     getDashboardStats: async (): Promise<DashboardStats> => {
         try {
-            // Memanggil endpoint backend yang kita buat di Step 0
             const response = await api.get('/admin/dashboard/stats');
             return response.data.data;
         } catch (error: any) {

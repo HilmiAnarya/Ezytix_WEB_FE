@@ -13,29 +13,20 @@ const BookingSuccessPage = () => {
 
             <main className="flex-grow flex items-center justify-center px-4 py-16">
                 <div className="max-w-xl w-full">
-                    {/* Main Card */}
                     <div className="bg-white rounded-3xl shadow-xl overflow-hidden text-center relative border-t-4 border-red-600 p-8 md:p-12 animate-in zoom-in-95 duration-300">
-                        
-                        {/* Latar Belakang Dekoratif (Confetti Merah Halus) */}
                         <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-10">
                              <div className="absolute -top-10 -left-10 w-40 h-40 bg-red-200 rounded-full mix-blend-multiply filter blur-xl animate-blob"></div>
                              <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-red-300 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-2000"></div>
                         </div>
-
-                        {/* Icon Sukses Besar */}
                         <div className="mx-auto w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mb-6 relative z-10 ring-8 ring-red-50 animate-bounce-slow">
                             <CheckCircle className="w-12 h-12 text-red-600" strokeWidth={3} />
                         </div>
-
-                        {/* Judul & Pesan */}
                         <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4 leading-tight">
                             Pembayaran <span className="text-red-600">Berhasil!</span>
                         </h1>
                         <p className="text-gray-600 text-lg mb-8 leading-relaxed">
                             Status pembayaran Anda telah terkonfirmasi <strong>LUNAS (PAID)</strong>. E-tiket sedang diproses dan akan segera dikirimkan.
                         </p>
-
-                        {/* Tombol Aksi Tunggal */}
                         <div className="flex justify-center mt-6 relative z-10">
                             <button
                                 onClick={() => navigate('/history')}

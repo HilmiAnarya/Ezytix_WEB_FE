@@ -3,9 +3,6 @@ import { motion } from "framer-motion";
 import { StatRedCard } from "../ui/StatRedCard";
 import { FiUsers, FiMap, FiAirplay, FiBookOpen } from "react-icons/fi";
 
-/* =======================
-   ANIMATION VARIANTS
-======================= */
 const containerVariants = {
   hidden: {
     opacity: 0,
@@ -37,9 +34,6 @@ const itemVariants = {
   },
 };
 
-/* =======================
-   COMPONENT
-======================= */
 export const StatsRedSection: React.FC = () => {
   const stats = [
     { icon: <FiUsers />, value: "15 Ribu+", label: "Klien Puas" },

@@ -2,10 +2,8 @@ import React, { useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { Home, Monitor, ChevronDown, ChevronUp, LogOut } from "lucide-react";
 import { useAuth } from "../../../context/AuthContext";
-
 import RedLogo from "../../../assets/images/ezyred.png";
 
-// Contoh Menu CMS yang sebenarnya
 const cmsItems = [
     { title: "Flights Data", url: "/admin/flights" },
     { title: "Bookings Data", url: "/admin/bookings" },
@@ -17,12 +15,9 @@ export const AdminSidebar: React.FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { logout } = useAuth();
-
-    // Deteksi menu aktif
     const isActive = (path: string) => location.pathname === path;
     const isCmsActive = cmsItems.some((item) => isActive(item.url));
 
-    // Handle Logout
     const handleLogout = async () => {
         if (window.confirm("Apakah Anda yakin ingin keluar dari Admin Panel?")) {
             await logout();
@@ -32,17 +27,13 @@ export const AdminSidebar: React.FC = () => {
 
     return (
         <aside className="w-[280px] min-h-screen bg-gray-50 border-r border-gray-200 flex flex-col fixed left-0 top-0 z-20">
-            {/* Logo */}
             <Link 
                 to="/" 
                 className="flex items-center justify-center h-16 border-b border-gray-200/50 hover:bg-gray-100/50 transition-colors"
             >
                 <img src={RedLogo} alt="Ezytix Logo" className="h-12 w-auto" />
             </Link>
-
-            {/* Navigation */}
             <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-                {/* Dashboard */}
                 <NavLink
                     to="/admin"
                     end
@@ -55,8 +46,6 @@ export const AdminSidebar: React.FC = () => {
                     <Home className="h-5 w-5" />
                     Dashboard
                 </NavLink>
-
-                {/* CMS Dropdown */}
                 <div className="pt-2">
                     <button
                         onClick={() => setCmsOpen(!cmsOpen)}
@@ -70,7 +59,6 @@ export const AdminSidebar: React.FC = () => {
                         <span className="flex-1 text-left">Data Management</span>
                         {cmsOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                     </button>
-
                     {cmsOpen && (
                         <div className="ml-9 mt-1 space-y-1">
                             {cmsItems.map((item) => (
@@ -92,8 +80,6 @@ export const AdminSidebar: React.FC = () => {
                     )}
                 </div>
             </nav>
-
-            {/* Logout */}
             <div className="px-4 pb-6 mt-auto">
                 <button 
                     onClick={handleLogout}

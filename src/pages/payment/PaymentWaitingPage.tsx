@@ -1,15 +1,10 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { FiLoader, FiArrowLeft } from "react-icons/fi";
-
-// Components
-import { PaymentInfoCard } from "../../components/features/payment/PaymentInfoCard";
+import { FiLoader, FiArrowLeft } from "react-icons/fi";import { PaymentInfoCard } from "../../components/features/payment/PaymentInfoCard";
 import { PaymentInstructionList } from "../../components/features/payment/PaymentInstructionList";
 import { FlightSummaryCard } from "../../components/features/payment/FlightSummaryCard";
 import { SimplePaymentNavbar } from "../../components/layout/SimplePaymentNavbar";
-
-// Services & Data
 import { bookingService } from "../../services/bookingService";
 import { PAYMENT_INSTRUCTION_DATA } from "../../data/PaymentInstructionData";
 import { Booking } from "../../types/booking";
@@ -19,8 +14,6 @@ export const PaymentWaitingPage: React.FC = () => {
     const { orderId } = useParams<{ orderId: string }>();
     const navigate = useNavigate();
     const location = useLocation();
-
-    // --- 1. SESSION STORAGE LOGIC (TIDAK DIUBAH) ---
     const SESSION_KEY = `payment_session_${orderId}`;
 
     const loadInitialData = (): InitiatePaymentResponse | undefined => {
@@ -34,12 +27,9 @@ export const PaymentWaitingPage: React.FC = () => {
     };
 
     const [paymentData] = useState<InitiatePaymentResponse | undefined>(loadInitialData);
-    
-    // [UBAH 1] State Booking menjadi Array (Bookings)
     const [bookings, setBookings] = useState<Booking[]>([]); 
     const [loadingBooking, setLoadingBooking] = useState(true);
 
-    // --- 2. POLLING STATUS PEMBAYARAN ---
     useEffect(() => {
         if (!orderId) return;
 
@@ -48,15 +38,12 @@ export const PaymentWaitingPage: React.FC = () => {
         const fetchStatus = async () => {
             try {
                 const allBookings = await bookingService.getMyBookings();
-                
-                // [UBAH 2] Gunakan .filter untuk mengambil SEMUA booking (Array) dalam 1 Order ID
                 const relatedBookings = allBookings.filter(b => b.order_id === orderId);
                 
                 if (isMounted && relatedBookings.length > 0) {
-                    setBookings(relatedBookings); // Simpan Array
+                    setBookings(relatedBookings);
                     setLoadingBooking(false);
 
-                    // Cek status dari booking pertama (asumsi status sinkron)
                     if (relatedBookings[0].status === 'paid') {
                         navigate('/booking/success', { replace: true });
                     }
@@ -77,8 +64,6 @@ export const PaymentWaitingPage: React.FC = () => {
             clearInterval(interval);
         };
     }, [orderId, navigate]);
-
-    // --- 3. DERIVED DATA FOR UI (LOGIKA PAYMENT TIDAK DIUBAH) ---
     
     const instructionKey = useMemo(() => {
         if (!paymentData) return "";
@@ -97,8 +82,6 @@ export const PaymentWaitingPage: React.FC = () => {
 
     const displayBillerCode = paymentData?.mandiri_bill?.biller_code;
 
-    // --- 4. RENDER ---
-    
     if (!paymentData && !loadingBooking) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center p-4">
@@ -113,16 +96,9 @@ export const PaymentWaitingPage: React.FC = () => {
         );
     }
 
-    // [UBAH 3] Penyesuaian Variabel UI untuk Array
-    // Ambil data umum (expiry, status) dari booking pertama
     const firstBooking = bookings.length > 0 ? bookings[0] : null;
-    
-    // Hitung total amount dari semua booking (jika array ada isinya)
     const totalBookingAmount = bookings.reduce((sum, item) => sum + parseFloat(item.total_amount), 0);
-
     const finalExpiryTime = firstBooking?.expiry_time || paymentData?.expiry_time || new Date().toISOString();
-    
-    // Prioritas Amount: Total Booking Array -> Payment Data -> 0
     const finalAmount = bookings.length > 0 ? totalBookingAmount : (paymentData ? Number(paymentData.amount) : 0);
 
     return (
@@ -140,13 +116,12 @@ export const PaymentWaitingPage: React.FC = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-[1fr_350px] gap-8">
 
-                    {/* KOLOM KIRI: Info & Instruksi */}
                     <div className="space-y-8">
                         <PaymentInfoCard
                             orderId={orderId || "-"}
-                            bookingDate={firstBooking?.created_at || new Date().toISOString()} // Pakai booking pertama
+                            bookingDate={firstBooking?.created_at || new Date().toISOString()}
                             amount={finalAmount}
-                            status={firstBooking?.status || "pending"} // Pakai booking pertama
+                            status={firstBooking?.status || "pending"}
                             expiryTime={finalExpiryTime}
                             paymentMethodName={instructionKey}
                             paymentData={paymentData} 
@@ -160,11 +135,8 @@ export const PaymentWaitingPage: React.FC = () => {
                             />
                         ) : null}
                     </div>
-
-                    {/* KOLOM KANAN: Flight Summary (Sticky) */}
                     <div className="order-first md:order-last">
                         <div className="md:sticky md:top-24">
-                            {/* [UBAH 4] Kirim Array 'bookings' ke FlightSummaryCard */}
                             {bookings.length > 0 ? (
                                 <FlightSummaryCard bookings={bookings} />
                             ) : (

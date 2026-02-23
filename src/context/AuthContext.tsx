@@ -30,7 +30,6 @@ interface RegisterPayload {
     password: string;
 }
 
-// [BARU] Interface untuk Verify OTP
 interface VerifyOtpPayload {
     email: string;
     otp_code: string;
@@ -43,8 +42,6 @@ interface AuthContextValue {
     registerUser: (data: RegisterPayload) => Promise<void>;
     logout: () => Promise<void>;
     fetchUser: () => Promise<void>;
-    
-    // [BARU] Fungsi OTP
     verifyOtp: (data: VerifyOtpPayload) => Promise<void>;
     resendOtp: (email: string) => Promise<void>;
 }
@@ -57,9 +54,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    // ========================
-    // FETCH USER (CEK LOGIN)
-    // ========================
     const fetchUser = async () => {
         try {
             const res = await api.get("/auth/me", { withCredentials: true });
@@ -75,9 +69,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         fetchUser();
     }, []);
 
-    // ========================
-    // LOGIN
-    // ========================
     const login = async (identifier: string, password: string) => {
         setLoading(true);
         try {
@@ -102,22 +93,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             }
         } catch (err: any) {
             console.error("Login failed:", err);
-            // Tangkap pesan dari backend Golang agar terbaca di UI
             throw new Error(err.response?.data?.error || "Gagal melakukan login.");
         } finally {
             setLoading(false);
         }
     };
 
-    // ========================
-    // REGISTER
-    // ========================
     const registerUser = async (data: RegisterPayload) => {
         setLoading(true);
         try {
             await api.post("/auth/register", data);
-            
-            // [DIUBAH] Jangan ke login, lemparkan user ke halaman verifikasi OTP
             navigate(`/verify-otp?email=${encodeURIComponent(data.email)}`);
         } catch (err: any) {
             console.error("Registration failed:", err);
@@ -127,16 +112,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
-    // ========================
-    // [BARU] VERIFY OTP
-    // ========================
     const verifyOtp = async (data: VerifyOtpPayload) => {
         setLoading(true);
         try {
             const res = await api.post("/auth/verify-otp", data);
-            setUser(res.data.user); // Otomatis set status user jadi login
-            
-            // Setelah verifikasi sukses, lempar ke halaman terakhir atau Home
+            setUser(res.data.user);
             const savedPath = sessionStorage.getItem("lastPath");
             if (savedPath) {
                 sessionStorage.removeItem("lastPath");
@@ -152,9 +132,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
-    // ========================
-    // [BARU] RESEND OTP
-    // ========================
     const resendOtp = async (email: string) => {
         try {
             await api.post("/auth/resend-otp", { email });
@@ -164,9 +141,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
-    // ========================
-    // LOGOUT
-    // ========================
     const logout = async () => {
         try {
             await api.post("/auth/logout", {}, { withCredentials: true });
@@ -178,9 +152,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
-    // ========================
-    // SIMPAN LAST PATH URL
-    // ========================
     useEffect(() => {
         if (!location.pathname.startsWith("/login") && !location.pathname.startsWith("/register") && !location.pathname.startsWith("/verify-otp")) {
             const fullPath = location.pathname + location.search;
@@ -197,8 +168,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 registerUser,
                 logout,
                 fetchUser,
-                verifyOtp, // Export Verify
-                resendOtp, // Export Resend
+                verifyOtp,
+                resendOtp,
             }}
         >
             {children}

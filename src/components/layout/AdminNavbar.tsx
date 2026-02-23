@@ -17,20 +17,14 @@ const AdminNavbar: React.FC = () => {
     return (
         <header className="fixed top-0 left-0 w-full bg-white shadow-md z-50">
             <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-
-                {/* Logo */}
                 <Link to="/" className="flex items-center">
                     <img src={RedLogo} alt="Ezytix Logo" className="h-9 w-auto" />
                 </Link>
-
-                {/* Desktop Nav */}
                 <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
                     <Link to="/" className="text-gray-800 hover:text-black">Home</Link>
                     <Link to="/partner" className="text-gray-800 hover:text-black">Jadi Partner</Link>
                     <Link to="/riwayat" className="text-gray-800 hover:text-black">Riwayat Pemesanan</Link>
                 </nav>
-
-                {/* Right User Section */}
                 <div className="hidden md:flex items-center relative">
                     {user && (
                         <button
@@ -46,8 +40,6 @@ const AdminNavbar: React.FC = () => {
                             <span className="text-xs text-gray-600">▾</span>
                         </button>
                     )}
-
-                    {/* Dropdown */}
                     {openDropdown && (
                         <div className="absolute top-12 right-0 w-36 bg-white shadow-lg rounded-lg border">
                             <button
@@ -59,8 +51,6 @@ const AdminNavbar: React.FC = () => {
                         </div>
                     )}
                 </div>
-
-                {/* Mobile Menu Button */}
                 <button
                     className="md:hidden flex flex-col gap-[4px]"
                     onClick={() => setOpenMobile(!openMobile)}
@@ -70,8 +60,6 @@ const AdminNavbar: React.FC = () => {
                     <span className="block w-6 h-[3px] bg-black rounded"></span>
                 </button>
             </div>
-
-            {/* Mobile Dropdown */}
             {openMobile && (
                 <div className="md:hidden bg-white p-4 space-y-4 shadow">
 
@@ -91,7 +79,6 @@ const AdminNavbar: React.FC = () => {
                         Riwayat Pemesanan
                     </Link>
 
-                    {/* Mobile User */}
                     {user && (
                         <button
                             onClick={logout}

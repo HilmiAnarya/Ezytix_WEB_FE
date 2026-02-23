@@ -2,21 +2,17 @@ import React from "react";
 import { Copy, Clock, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import QRCode from "react-qr-code";
-
-// [FIX] Import types & utils
 import { formatCurrency, formatPaymentDate } from "../../../utils/formatters";
 import { useBookingTimer } from "../../../hooks/useBookingTimer";
 import { InitiatePaymentResponse } from "../../../types/payment";
 
 interface PaymentInfoCardProps {
   orderId: string;
-  bookingDate: string; // ISO String
+  bookingDate: string;
   amount: number;
   status: string;
   expiryTime: string;
   paymentMethodName: string;
-
-  // Data Dinamis dari Backend
   paymentData?: InitiatePaymentResponse;
 }
 
@@ -29,10 +25,8 @@ export const PaymentInfoCard: React.FC<PaymentInfoCardProps> = ({
   paymentMethodName,
   paymentData
 }) => {
-
   const { hours, minutes, seconds, isExpired } = useBookingTimer(expiryTime);
 
-  // Helper Copy Clipboard
   const handleCopy = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast.success(`${label} berhasil disalin!`);
@@ -43,12 +37,9 @@ export const PaymentInfoCard: React.FC<PaymentInfoCardProps> = ({
     if (s === 'expired') return 'text-red-600';
     return 'text-orange-600';
   };
-
-  // --- RENDER DYNAMIC CONTENT (VA / QR / BILL) ---
   const renderPaymentContent = () => {
     if (!paymentData) return <div className="text-gray-400 italic text-sm">Menunggu data pembayaran...</div>;
 
-    // 1. CASE: QRIS
     if (paymentData.qris) {
       return (
         <div className="flex flex-col items-center justify-center py-6 space-y-4 bg-gray-50 rounded-xl border border-gray-100">
@@ -67,7 +58,6 @@ export const PaymentInfoCard: React.FC<PaymentInfoCardProps> = ({
       );
     }
 
-    // 2. CASE: MANDIRI BILL
     if (paymentData.mandiri_bill) {
       return (
         <div className="space-y-4 py-2">
@@ -85,7 +75,6 @@ export const PaymentInfoCard: React.FC<PaymentInfoCardProps> = ({
               </button>
             </div>
           </div>
-
           <div>
             <span className="text-xs text-gray-500 font-medium block mb-1">Kode Bayar (Bill Key)</span>
             <div className="flex items-center justify-between bg-white p-3 rounded-lg border-2 border-blue-500 shadow-sm">
@@ -104,7 +93,6 @@ export const PaymentInfoCard: React.FC<PaymentInfoCardProps> = ({
       );
     }
 
-    // 3. CASE: VIRTUAL ACCOUNT
     if (paymentData.virtual_account) {
       return (
         <div className="py-2">
@@ -129,23 +117,14 @@ export const PaymentInfoCard: React.FC<PaymentInfoCardProps> = ({
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-
       <div className="p-6 space-y-6">
-
-        
-
-        {/* SECTION 2: ORDER DETAILS (RESTORED) */}
-        {/* Order ID */}
         <div className="space-y-3 pt-4 border-t border-gray-100">
           <div className="flex justify-between text-sm">
             <span className="text-gray-500">Order saya</span>
           </div>
           <p className="font-semibold text-gray-900 tracking-wide text-sm">{orderId}</p>
         </div>
-
-        {/* Details Section */}
         <div className="space-y-3 border-t border-gray-100 pt-4">
-
           <div className="flex justify-between text-sm">
             <span className="text-gray-500">Status</span>
             <div className="flex items-center gap-2">
@@ -155,21 +134,18 @@ export const PaymentInfoCard: React.FC<PaymentInfoCardProps> = ({
               </span>
             </div>
           </div>
-
           <div className="flex justify-between text-sm">
             <span className="text-gray-500">Tanggal Pemesanan</span>
             <span className="font-medium text-gray-900">
               {formatPaymentDate(bookingDate)}
             </span>
           </div>
-
           <div className="flex justify-between text-sm">
             <span className="text-gray-500">Total Pembayaran</span>
             <span className="font-medium text-gray-900">
               {formatCurrency(amount)}
             </span>
           </div>
-
           <div className="flex justify-between text-sm items-center bg-red-50 p-2 rounded-lg border border-red-100">
             <span className="text-gray-600 flex items-center gap-1">
               <Clock className="w-3 h-3 text-red-500" /> Sisa Waktu
@@ -179,8 +155,6 @@ export const PaymentInfoCard: React.FC<PaymentInfoCardProps> = ({
             </span>
           </div>
         </div>
-
-        {/* SECTION 1: DYNAMIC PAYMENT CONTENT (VA/QR) */}
         <div>
           <div className="flex items-center gap-2 mb-4">
             <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center text-red-600 font-bold text-xs">
@@ -191,11 +165,8 @@ export const PaymentInfoCard: React.FC<PaymentInfoCardProps> = ({
               <p className="font-semibold text-gray-800 text-sm">{paymentMethodName}</p>
             </div>
           </div>
-
-          {/* Render VA/QR di sini */}
           {renderPaymentContent()}
         </div>
-
       </div>
     </div>
   );

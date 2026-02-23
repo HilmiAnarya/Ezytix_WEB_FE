@@ -62,8 +62,6 @@ export const PassengerSelector: React.FC<Props> = ({ adults, children, infants, 
 
   return (
     <div className="relative w-full" ref={dropdownRef}>
-      
-      {/* TRIGGER BOX */}
       <div
         onClick={() => setIsOpen(!isOpen)}
         className={`
@@ -74,27 +72,21 @@ export const PassengerSelector: React.FC<Props> = ({ adults, children, infants, 
             }
         `}
       >
-        {/* Icon */}
         <span className={`text-xl transition-colors ${isOpen ? "text-red-500" : "text-gray-400 group-hover:text-red-500"}`}>
-             <FiUsers />
+            <FiUsers />
         </span>
 
-        {/* Value Text - FIXED: Added text-left */}
         <div className="flex-1 min-w-0 text-left">
            <p className="text-base font-bold truncate text-gray-900">
              {totalPassenger}, {seatClassLabel}
            </p>
         </div>
 
-         {/* Chevron Icon */}
          <FiChevronDown className={`text-gray-400 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`} />
       </div>
 
-      {/* DROPDOWN CONTENT */}
       {isOpen && (
         <div className="absolute top-full right-0 mt-2 w-[340px] bg-white rounded-2xl shadow-xl z-50 p-5 border border-gray-100 ring-1 ring-black ring-opacity-5 animate-in fade-in zoom-in-95 duration-200">
-          
-          {/* Passenger Counters */}
           <div className="space-y-5 mb-5">
             <CounterRow 
               label="Dewasa" desc="(12+ tahun)" value={adults} 
@@ -114,10 +106,7 @@ export const PassengerSelector: React.FC<Props> = ({ adults, children, infants, 
           </div>
 
           <div className="border-t border-gray-100 my-5"></div>
-
-          {/* Seat Class Options */}
           <div className="space-y-3">
-            {/* FIXED: Added text-left */}
             <p className="text-xs font-bold text-gray-400 uppercase tracking-wider text-left">Kelas Kabin</p>
             <div className="flex flex-wrap gap-2">
               {seatClassOptions.map((opt) => (
@@ -137,12 +126,12 @@ export const PassengerSelector: React.FC<Props> = ({ adults, children, infants, 
           </div>
           
           <div className="mt-6 flex justify-end">
-             <button 
+            <button 
                 onClick={() => setIsOpen(false)} 
                 className="text-red-600 text-sm font-bold hover:bg-red-50 px-5 py-2.5 rounded-xl transition-colors"
-             >
+            >
                 Selesai
-             </button>
+            </button>
           </div>
         </div>
       )}
@@ -150,10 +139,8 @@ export const PassengerSelector: React.FC<Props> = ({ adults, children, infants, 
   );
 };
 
-// Component Helper untuk Baris Counter
 const CounterRow = ({ label, desc, value, onDec, onInc, disableDec, disableInc }: any) => (
   <div className="flex justify-between items-center">
-    {/* FIXED: Added text-left pada container label */}
     <div className="text-left">
       <p className="font-bold text-gray-800 text-sm">{label}</p>
       <p className="text-xs text-gray-400 font-medium">{desc}</p>

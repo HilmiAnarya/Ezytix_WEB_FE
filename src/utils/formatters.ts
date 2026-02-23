@@ -12,23 +12,21 @@ export const formatTime = (dateString: string) => {
   return new Date(dateString).toLocaleTimeString('id-ID', {
     hour: '2-digit',
     minute: '2-digit',
-    hour12: false, // Format 24 jam (14:30)
+    hour12: false, 
   });
 };
 
-// Formatter Global (Tetap Year Numeric / 4 Digit)
 export const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('id-ID', {
     weekday: 'short', day: 'numeric', month: 'short', year: 'numeric'
   });
 };
 
-// [NEW] Formatter Khusus Payment Card (Year 2-Digit)
 export const formatPaymentDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('id-ID', {
     weekday: 'short', 
     day: 'numeric', 
     month: 'short', 
-    year: '2-digit' // Output: "Rab, 5 Okt 25"
+    year: '2-digit'
   });
 };

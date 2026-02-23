@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/static-components */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useRef, useEffect } from "react";
 import { FiChevronDown, FiCheck } from "react-icons/fi";
 
@@ -30,8 +32,6 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onFilterChange }) => {
     setSelectedTransits(newTransits);
     onFilterChange({ transit: newTransits });
   };
-
-  // Helper Button: Style "Floating Pill"
   const FilterButton = ({ label, id, isActive, hasValue }: { label: string, id: string, isActive: boolean, hasValue: boolean }) => (
     <div className="relative">
         <button
@@ -53,14 +53,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onFilterChange }) => {
   );
 
   return (
-    // UBAH DI SINI: Hapus bg-white, hapus shadow container. Biarkan transparan.
     <div className="py-2" ref={barRef}> 
       <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
-          
-          {/* 1. TRANSIT (Ada Dropdown) */}
           <div className="relative">
             <FilterButton label="Transit" id="transit" isActive={activeDropdown === "transit"} hasValue={selectedTransits.length > 0} />
-            
             {activeDropdown === "transit" && (
               <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-100 p-4 z-50 animate-fadeIn">
                 <p className="text-xs font-bold text-gray-400 uppercase mb-3">Jumlah Transit</p>
@@ -82,17 +78,9 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onFilterChange }) => {
               </div>
             )}
           </div>
-
-          {/* 2. HARGA (Dummy) */}
           <FilterButton label="Harga" id="price" isActive={false} hasValue={false} />
-          
-          {/* 3. WAKTU (Dummy) */}
           <FilterButton label="Waktu" id="time" isActive={false} hasValue={false} />
-          
-          {/* 4. MASKAPAI (Dummy) */}
           <FilterButton label="Maskapai" id="airline" isActive={false} hasValue={false} />
-
-          {/* Tombol Reset (Optional) */}
           {(selectedTransits.length > 0) && (
              <button onClick={() => setSelectedTransits([])} className="text-gray-400 text-xs font-bold hover:text-red-600 ml-2">Reset</button>
           )}

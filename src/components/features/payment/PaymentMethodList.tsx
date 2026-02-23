@@ -1,18 +1,14 @@
 import React, { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
-// Pastikan path import ini sesuai dengan struktur folder kamu
 import { PAYMENT_GROUPS} from "../../../data/paymentStaticData";
 import { PaymentType } from "../../../types/payment";
 
-// [UPDATED] Interface Props
-// Kita ubah 'selectedMethod' -> 'selectedMethodCode' agar konsisten dengan Parent Page
 interface Props {
     selectedMethodCode: string | null;
     onSelectMethod: (code: string, type: PaymentType) => void;
 }
 
 export const PaymentMethodList: React.FC<Props> = ({ selectedMethodCode, onSelectMethod }) => {
-    // Default expand group pertama (Bank Transfer) agar user langsung lihat opsi
     const [expandedId, setExpandedId] = useState<string | null>("bank_transfer");
 
     const toggleExpand = (id: string) => {
@@ -27,13 +23,11 @@ export const PaymentMethodList: React.FC<Props> = ({ selectedMethodCode, onSelec
                     Silakan pilih metode pembayaran yang tersedia untuk menyelesaikan transaksi pemesanan anda.
                 </p>
             </div>
-
             <div className="border-t border-gray-100">
                 {PAYMENT_GROUPS.map((group) => {
                     const Icon = group.icon;
                     return (
                         <div key={group.id}>
-                            {/* Header Accordion */}
                             <div
                                 className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 transition-colors border-b border-gray-50"
                                 onClick={() => toggleExpand(group.id)}
@@ -44,9 +38,7 @@ export const PaymentMethodList: React.FC<Props> = ({ selectedMethodCode, onSelec
                                     </div>
                                     <span className="font-medium text-gray-900">{group.name}</span>
                                 </div>
-
                                 <div className="flex items-center gap-3">
-                                    {/* Badges Kecil (List Bank) */}
                                     <div className="hidden sm:flex items-center gap-1">
                                         {group.methods.slice(0, 4).map((method, idx) => (
                                             <div
@@ -69,15 +61,12 @@ export const PaymentMethodList: React.FC<Props> = ({ selectedMethodCode, onSelec
                                     )}
                                 </div>
                             </div>
-
-                            {/* Expanded Content (Grid Tombol Bank) */}
                             {expandedId === group.id && (
                                 <div className="px-6 py-4 bg-gray-50/30 animate-in slide-in-from-top-2 duration-200">
                                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                                         {group.channels.map((channel) => (
                                             <button
                                                 key={channel.code}
-                                                // [CRITICAL] Kirim Code DAN Type ke Parent
                                                 onClick={() => onSelectMethod(channel.code, channel.type)}
                                                 className={`
                                                     relative px-3 py-3 border rounded-xl text-sm font-medium transition-all duration-200 
@@ -88,7 +77,6 @@ export const PaymentMethodList: React.FC<Props> = ({ selectedMethodCode, onSelec
                                                     }
                                                 `}
                                             >
-                                                {/* Logo Rendering */}
                                                 {channel.logo ? (
                                                     <img 
                                                         src={channel.logo} 
@@ -103,12 +91,9 @@ export const PaymentMethodList: React.FC<Props> = ({ selectedMethodCode, onSelec
                                                         Logo
                                                     </div>
                                                 )}
-                                                
                                                 <span className="text-center text-xs leading-tight font-semibold">
                                                     {channel.name}
                                                 </span>
-
-                                                {/* Checkmark Icon jika selected */}
                                                 {selectedMethodCode === channel.code && (
                                                     <div className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></div>
                                                 )}

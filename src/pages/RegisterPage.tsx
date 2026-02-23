@@ -37,10 +37,8 @@ export default function RegisterPage() {
     setErrorMessage(null);
 
     try {
-      // Biarkan AuthContext yang mengurus perpindahan halaman
       await registerUser(form);
     } catch (err: any) {
-      // Tangkap error dari Golang dan tampilkan (bisa pakai console.log, alert, atau state error)
       console.error("Register failed:", err.message);
       setErrorMessage(err.message); 
     } finally {
@@ -55,7 +53,6 @@ export default function RegisterPage() {
         backgroundImage: `url(${LoginBG})`,
       }}
     >
-      {/* LOGO */}
       <div className="flex flex-col items-center mt-10 mb-6">
         <img src={WhiteLogo} alt="Ezytix" className="w-48 md:w-56" />
         <p className="text-white text-lg md:text-xl font-semibold tracking-wide">
@@ -63,7 +60,6 @@ export default function RegisterPage() {
         </p>
       </div>
 
-      {/* CARD */}
       <div className="bg-white w-[90%] max-w-md rounded-2xl shadow-lg px-8 py-8">
         <h2 className="text-center font-semibold text-lg mb-6">Register</h2>
 
@@ -118,7 +114,6 @@ export default function RegisterPage() {
             required
           />
 
-          {/* LINKS */}
           <div className="flex justify-between text-sm font-medium">
             <button
               type="button"
@@ -131,7 +126,6 @@ export default function RegisterPage() {
             <span></span>
           </div>
 
-          {/* BUTTON REGISTER */}
           <button
             type="submit"
             disabled={loading}
@@ -141,7 +135,6 @@ export default function RegisterPage() {
           </button>
         </form>
 
-        {/* DISCLAIMER */}
         <p className="text-gray-500 text-xs text-center mt-4">
           Dengan membuat akun, kamu menyetujui kebijakan Privasi dan Syarat &
           Ketentuan Ezytix.

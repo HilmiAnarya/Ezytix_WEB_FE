@@ -23,10 +23,7 @@ export const BookingActionFooter: React.FC<Props> = ({
 }) => {
   return (
     <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mt-6">
-        {/* Container Utama: Flex Column (Atas Bawah) */}
         <div className="flex flex-col gap-5">
-            
-            {/* BAGIAN ATAS: Keterangan Harga */}
             <div className="flex justify-between items-end border-b border-gray-100 pb-4">
                 <div className="flex flex-col">
                     <span className="text-gray-500 text-sm font-medium">Total Pembayaran</span>
@@ -41,8 +38,6 @@ export const BookingActionFooter: React.FC<Props> = ({
                     </span>
                 </div>
             </div>
-
-            {/* BAGIAN BAWAH: Tombol Full Width */}
             <button
                 onClick={onBook}
                 disabled={!isValid || isProcessing}
@@ -68,8 +63,6 @@ export const BookingActionFooter: React.FC<Props> = ({
                     "Lanjut ke Pembayaran"
                 )}
             </button>
-
-            {/* Validation Message (Center) */}
             {!isValid && (
                 <p className="text-xs text-red-500 text-center font-medium animate-pulse bg-red-50 py-2 rounded-lg border border-red-100">
                     ⚠️ Mohon lengkapi semua data penumpang di atas untuk melanjutkan

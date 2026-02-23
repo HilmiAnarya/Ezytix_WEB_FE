@@ -19,14 +19,12 @@ interface Props {
   onChange: (data: PassengerData, isValid: boolean) => void;
 }
 
-export const PassengerForm: React.FC<Props> = ({ 
-  index, 
-  passengerType, 
-  isInternational, 
-  onChange 
+export const PassengerForm: React.FC<Props> = ({
+  index,
+  passengerType,
+  isInternational,
+  onChange
 }) => {
-
-  // --- HELPER: Label berdasarkan Tipe ---
   const getTypeLabel = () => {
     switch (passengerType) {
       case "child": return "Anak";
@@ -35,8 +33,6 @@ export const PassengerForm: React.FC<Props> = ({
     }
   };
   const label = getTypeLabel();
-
-  // --- LOCAL STATE ---
   const [hasSingleName, setHasSingleName] = useState(false);
   const [formData, setFormData] = useState<PassengerData>({
     title: "tuan",
@@ -49,7 +45,6 @@ export const PassengerForm: React.FC<Props> = ({
     expiryDate: ""
   });
 
-  // --- VALIDATION EFFECT ---
   useEffect(() => {
     let isValid =
       formData.firstName.length > 0 &&
@@ -81,20 +76,15 @@ export const PassengerForm: React.FC<Props> = ({
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden mb-6 animate-in fade-in slide-in-from-bottom-4">
-      
-      {/* === MAIN HEADER (Solid Red matching Figma) === */}
       <div className="bg-red-600 px-4 py-3 border-b border-red-700">
         <h3 className="text-white font-semibold text-sm flex items-center gap-2">
-          Penumpang {index + 1} 
+          Penumpang {index + 1}
           <span className="bg-red-700 text-white text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider">
             {label}
           </span>
         </h3>
       </div>
-
       <div className="p-6 space-y-6">
-        
-        {/* --- Title Field --- */}
         <div>
           <label className="block text-xs text-gray-500 font-medium mb-2">Titel</label>
           <div className="relative">
@@ -114,8 +104,6 @@ export const PassengerForm: React.FC<Props> = ({
             </div>
           </div>
         </div>
-
-        {/* --- Name Fields --- */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs text-gray-500 font-medium mb-2">
@@ -132,7 +120,6 @@ export const PassengerForm: React.FC<Props> = ({
               <FiUser className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             </div>
           </div>
-
           <div>
             <label className={`block text-xs font-medium mb-2 ${hasSingleName ? "text-gray-300" : "text-gray-500"}`}>
               Nama Belakang / Keluarga
@@ -154,8 +141,6 @@ export const PassengerForm: React.FC<Props> = ({
             </div>
           </div>
         </div>
-
-        {/* --- Single Name Toggle --- */}
         <label className="flex items-center gap-2 cursor-pointer select-none">
           <input
             type="checkbox"
@@ -167,13 +152,10 @@ export const PassengerForm: React.FC<Props> = ({
             Nama Penumpang ini hanya memiliki 1 kata
           </span>
         </label>
-
-        {/* --- DOB & Nationality --- */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs text-gray-500 font-medium mb-2">Tanggal Lahir</label>
             <div className="relative">
-              {/* Note: Tetap menggunakan input type="date" untuk menjaga logika state 'dob' string */}
               <input
                 type="date"
                 className="w-full h-11 px-3 pl-10 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 outline-none text-gray-700 font-medium cursor-pointer"
@@ -183,7 +165,6 @@ export const PassengerForm: React.FC<Props> = ({
               <FiCalendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             </div>
           </div>
-
           <div>
             <label className="block text-xs text-gray-500 font-medium mb-2">Kewarganegaraan</label>
             <div className="relative">
@@ -207,20 +188,15 @@ export const PassengerForm: React.FC<Props> = ({
             </div>
           </div>
         </div>
-
-        {/* --- PASSPORT SECTION (International Only) --- */}
         {isInternational && (
           <div className="mt-2">
-            {/* Passport Header - Red */}
             <div className="bg-red-600 px-4 py-3 -mx-6 mb-6 flex items-center gap-2">
-               <FiGlobe className="text-white" />
-               <h4 className="text-white font-semibold text-sm">
-                 Informasi Paspor
-               </h4>
+              <FiGlobe className="text-white" />
+              <h4 className="text-white font-semibold text-sm">
+                Informasi Paspor
+              </h4>
             </div>
-
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Passport Number */}
               <div>
                 <label className="block text-xs text-gray-500 font-medium mb-2">Nomor Paspor</label>
                 <input
@@ -231,8 +207,6 @@ export const PassengerForm: React.FC<Props> = ({
                   onChange={(e) => handleChange("passportNumber", e.target.value)}
                 />
               </div>
-
-              {/* Issuing Country */}
               <div>
                 <label className="block text-xs text-gray-500 font-medium mb-2">Negara Penerbit</label>
                 <div className="relative">
@@ -253,8 +227,6 @@ export const PassengerForm: React.FC<Props> = ({
                   </div>
                 </div>
               </div>
-
-              {/* Expiry Date */}
               <div>
                 <label className="block text-xs text-gray-500 font-medium mb-2">Berlaku Hingga</label>
                 <input
@@ -267,7 +239,6 @@ export const PassengerForm: React.FC<Props> = ({
             </div>
           </div>
         )}
-
       </div>
     </div>
   );

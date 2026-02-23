@@ -1,12 +1,11 @@
-// src/components/ui/CountdownTimer.tsx
 import React from 'react';
 import { Clock } from 'lucide-react';
 import { useBookingTimer } from '../../hooks/useBookingTimer';
 import { ExpiredModal } from './ExpiredModal';
 
 interface CountdownTimerProps {
-    targetDate: string; // ISO String dari Backend
-    className?: string; // Untuk custom styling tambahan
+    targetDate: string;
+    className?: string;
 }
 
 export const CountdownTimer: React.FC<CountdownTimerProps> = ({ targetDate, className = "" }) => {
@@ -21,8 +20,6 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({ targetDate, clas
                     {hours}:{minutes}:{seconds}
                 </span>
             </div>
-
-            {/* Modal akan otomatis muncul jika isExpired == true */}
             <ExpiredModal isOpen={isExpired} />
         </>
     );

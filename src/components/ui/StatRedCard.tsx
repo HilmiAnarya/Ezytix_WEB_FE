@@ -1,4 +1,3 @@
-// src/components/ui/StatRedCard.tsx
 import React from "react";
 
 interface StatRedCardProps {

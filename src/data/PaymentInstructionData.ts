@@ -1,9 +1,6 @@
-// src/data/PaymentInstructionData.ts
 import { PaymentInstructions } from "../types/payment";
 
-// Mapping: Payment Method Code -> JSON Instructions
 export const PAYMENT_INSTRUCTION_DATA: Record<string, PaymentInstructions> = {
-  // --- BCA (Standard Virtual Account) ---
   BCA: {
     atm: [
       {
@@ -54,8 +51,6 @@ export const PAYMENT_INSTRUCTION_DATA: Record<string, PaymentInstructions> = {
       },
     ],
   },
-
-  // --- MANDIRI (Bill Payment - BEDA DENGAN VA BIASA) ---
   MANDIRI: {
     "livin by mandiri": [
       {
@@ -88,8 +83,6 @@ export const PAYMENT_INSTRUCTION_DATA: Record<string, PaymentInstructions> = {
       },
     ],
   },
-
-  // --- BNI ---
   BNI: {
     atm: [
       {
@@ -117,8 +110,6 @@ export const PAYMENT_INSTRUCTION_DATA: Record<string, PaymentInstructions> = {
       },
     ],
   },
-
-  // --- BRI ---
   BRI: {
     atm: [
       {
@@ -146,7 +137,6 @@ export const PAYMENT_INSTRUCTION_DATA: Record<string, PaymentInstructions> = {
     ],
   },
 
-  // --- PERMATA ---
   PERMATA: {
     atm: [
       {
@@ -162,8 +152,6 @@ export const PAYMENT_INSTRUCTION_DATA: Record<string, PaymentInstructions> = {
       },
     ],
   },
-
-  // --- ALFAMART ---
   ALFAMART: [
     {
       title: "Alfamart / Alfamidi / Dan+Dan",

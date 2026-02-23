@@ -3,12 +3,10 @@ import React, { useState, useMemo } from "react";
 import { ChevronDown, ChevronUp, Info, Smartphone, Monitor, CreditCard, Store } from "lucide-react";
 import { PaymentInstructions, InstructionGroup } from "../../../types/payment";
 
-// [UPDATED] Interface Props
-// Tambahkan billerCode untuk menangani Mandiri (Company Code)
 interface Props {
   instructions?: PaymentInstructions;
-  paymentCode?: string; // Untuk VA Number atau Bill Key
-  billerCode?: string;  // [NEW] Untuk Mandiri Company Code
+  paymentCode?: string;
+  billerCode?: string;
 }
 
 export const PaymentInstructionList: React.FC<Props> = ({ 
@@ -16,38 +14,24 @@ export const PaymentInstructionList: React.FC<Props> = ({
   paymentCode,
   billerCode 
 }) => {
-  // 1. State: User Selection
   const [userSelectedTab, setUserSelectedTab] = useState<string | null>(null);
-  
-  // Default open index = 0
   const [openIndex, setOpenIndex] = useState<number | null>(0);
-
-  // 2. Deteksi Struktur Data
   const isArray = Array.isArray(instructions);
-  
-  // Memoize Categories
   const categories = useMemo(() => {
     return !isArray && instructions 
       ? Object.keys(instructions).filter(k => (instructions as any)[k] && (instructions as any)[k].length > 0)
       : [];
   }, [instructions, isArray]);
-
-  // 3. Derived State: Active Tab
   const activeTab = (userSelectedTab && categories.includes(userSelectedTab)) 
       ? userSelectedTab 
       : (categories.length > 0 ? categories[0] : "");
-
-  // Safety Check
   if (!instructions || (isArray && (instructions as any[]).length === 0) || (!isArray && categories.length === 0)) {
     return null;
   }
 
-  // 4. Data Preparation
   const activeInstructions: InstructionGroup[] = isArray 
     ? (instructions as InstructionGroup[])
     : (instructions as any)[activeTab] || [];
-
-  // --- Helpers ---
   const getTabLabel = (key: string) => {
     const map: Record<string, string> = {
       "atm": "ATM",
@@ -68,20 +52,11 @@ export const PaymentInstructionList: React.FC<Props> = ({
 
   const parseInstructionText = (text: string) => {
     let cleanText = text;
-    
-    // [FIX] Replace Placeholders dengan Data Real
     if (paymentCode) cleanText = cleanText.replace(/{{fullPaymentCode}}/g, paymentCode);
-    
-    // [FIX] Gunakan billerCode dari props atau default Midtrans (70012)
     const companyCode = billerCode || "70012"; 
     cleanText = cleanText.replace(/{{companyCode}}/g, companyCode);
-    
     cleanText = cleanText.replace(/{{merchantName}}/g, "Ezytix");
-    
-    // Quick Fix: Hapus referensi kompetitor jika ada di data lama
     cleanText = cleanText.replace(/Xendit/g, "Midtrans");
-
-    // Formatting Tags
     cleanText = cleanText
       .replace(/<bold>/g, "<strong class='font-semibold text-gray-900'>")
       .replace(/<\/bold>/g, "</strong>")
@@ -90,8 +65,6 @@ export const PaymentInstructionList: React.FC<Props> = ({
 
     return { __html: cleanText };
   };
-
-  // --- Handler ---
   const handleTabClick = (cat: string) => {
     setUserSelectedTab(cat);
     setOpenIndex(0); 
@@ -99,14 +72,10 @@ export const PaymentInstructionList: React.FC<Props> = ({
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden mt-6">
-      
-      {/* Header */}
       <div className="p-4 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
         {isArray ? <Store className="w-4 h-4 text-gray-500" /> : <Info className="w-4 h-4 text-gray-500" />}
         <h3 className="font-bold text-gray-800 text-sm">Cara Pembayaran</h3>
       </div>
-
-      {/* Tabs Navigation */}
       {!isArray && (
         <div className="flex border-b border-gray-100 overflow-x-auto scrollbar-hide bg-white">
           {categories.map((cat) => (
@@ -125,12 +94,9 @@ export const PaymentInstructionList: React.FC<Props> = ({
           ))}
         </div>
       )}
-
-      {/* Content List */}
       <div className="divide-y divide-gray-100">
         {activeInstructions.map((group, idx) => (
           <div key={idx} className="transition-colors hover:bg-gray-50 group">
-            
             <button
               onClick={() => setOpenIndex(openIndex === idx ? null : idx)}
               className="w-full flex items-center justify-between p-4 text-left"

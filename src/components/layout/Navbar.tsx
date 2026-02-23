@@ -10,7 +10,6 @@ export const Navbar: React.FC = () => {
     const [openMobile, setOpenMobile] = useState(false);
     const { user } = useAuth();
 
-    // scroll logic
     useEffect(() => {
         const handleScroll = () => {
             setIsScrolled(window.scrollY > 50);
@@ -25,7 +24,6 @@ export const Navbar: React.FC = () => {
         { label: "Jadi Partner", href: "/partner" },
     ];
 
-    // get initial letter from name
     const getInitial = (name?: string) => {
         if (!name) return "U";
         return name.charAt(0).toUpperCase();
@@ -35,13 +33,11 @@ export const Navbar: React.FC = () => {
         <header
             className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
                 isScrolled
-                    ? "bg-white shadow-md py-2" // Sedikit padding saat scroll agar elegan
-                    : "bg-transparent backdrop-blur-sm py-4" // Padding lebih lega saat transparan
+                    ? "bg-white shadow-md py-2"
+                    : "bg-transparent backdrop-blur-sm py-4"
             }`}
         >
             <div className="max-w-7xl mx-auto px-4 md:px-8 flex items-center justify-between">
-                
-                {/* Logo */}
                 <Link to="/" className="flex items-center">
                     <img
                         src={isScrolled ? RedLogo : WhiteLogo}
@@ -49,8 +45,6 @@ export const Navbar: React.FC = () => {
                         className="h-8 md:h-9 w-auto transition-all transform hover:scale-105"
                     />
                 </Link>
-
-                {/* Desktop Navigation - GAYA BARU (Berjarak & Pill Shape) */}
                 <nav className="hidden md:flex items-center gap-4"> 
                     {navItems.map((item) => (
                         <Link
@@ -65,8 +59,6 @@ export const Navbar: React.FC = () => {
                             {item.label}
                         </Link>
                     ))}
-
-                    {/* If user logged in */}
                     {user && (
                         <Link
                             to="/history"
@@ -80,8 +72,6 @@ export const Navbar: React.FC = () => {
                         </Link>
                     )}
                 </nav>
-
-                {/* Right Menu (Desktop) - Berjarak Tegas */}
                 <div className="hidden md:flex items-center gap-5">
                     {!user ? (
                         <>
@@ -104,7 +94,6 @@ export const Navbar: React.FC = () => {
                         </>
                     ) : (
                         <Link
-                            // [DIUBAH DISINI] Jika role admin, arahkan ke /admin
                             to={user.role === "admin" ? "/admin" : "/profile"}
                             className={`flex items-center gap-3 pl-2 pr-4 py-1.5 rounded-full border transition-all duration-300 group ${
                                 isScrolled 
@@ -121,8 +110,6 @@ export const Navbar: React.FC = () => {
                         </Link>
                     )}
                 </div>
-
-                {/* Mobile Menu Button */}
                 <button
                     className="md:hidden flex flex-col gap-1.5 p-2"
                     onClick={() => setOpenMobile(!openMobile)}
@@ -132,8 +119,6 @@ export const Navbar: React.FC = () => {
                     <span className={`block w-6 h-0.5 rounded-full transition-all ${isScrolled ? "bg-gray-800" : "bg-white"}`}></span>
                 </button>
             </div>
-
-            {/* Mobile Dropdown - Tampilan lebih bersih */}
             {openMobile && (
                 <div className="absolute top-full left-0 w-full bg-white/95 backdrop-blur-xl shadow-xl border-t border-gray-100 p-6 flex flex-col gap-4 animate-in slide-in-from-top-5 fade-in duration-200">
                     {navItems.map((item) => (
@@ -146,7 +131,6 @@ export const Navbar: React.FC = () => {
                             {item.label}
                         </Link>
                     ))}
-
                     {user ? (
                         <>
                             <Link
@@ -158,7 +142,6 @@ export const Navbar: React.FC = () => {
                             </Link>
 
                             <Link
-                                // [DIUBAH DISINI] Jika role admin, arahkan ke /admin
                                 to={user.role === "admin" ? "/admin" : "/profile"}
                                 onClick={() => setOpenMobile(false)}
                                 className="flex items-center gap-4 mt-4 p-3 bg-gray-50 rounded-xl"
@@ -168,7 +151,6 @@ export const Navbar: React.FC = () => {
                                 </div>
                                 <div className="flex flex-col">
                                     <span className="text-gray-900 font-bold">{user.full_name}</span>
-                                    {/* [DIUBAH DISINI] Teks keterangan menyesuaikan role */}
                                     <span className="text-xs text-gray-500">
                                         {user.role === "admin" ? "Buka Admin Panel" : "Lihat Profil"}
                                     </span>

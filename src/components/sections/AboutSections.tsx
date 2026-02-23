@@ -2,9 +2,6 @@ import React from "react";
 import { motion } from "framer-motion";
 import PesawatLanding from "../../assets/images/pesawatlanding.jpeg";
 
-/* =======================
-   ANIMATION VARIANTS
-======================= */
 const imageVariants = {
   hidden: {
     opacity: 0,
@@ -44,15 +41,10 @@ const textItem = {
   },
 };
 
-/* =======================
-   COMPONENT
-======================= */
 export const AboutSection: React.FC = () => {
   return (
     <section className="w-full py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-center">
-
-        {/* LEFT IMAGE */}
         <motion.div
           className="w-full"
           variants={imageVariants}
@@ -66,8 +58,6 @@ export const AboutSection: React.FC = () => {
             className="w-full h-auto rounded-3xl shadow-lg object-cover"
           />
         </motion.div>
-
-        {/* RIGHT TEXT */}
         <motion.div
           variants={textContainer}
           initial="hidden"
