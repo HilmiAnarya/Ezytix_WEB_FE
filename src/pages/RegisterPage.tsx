@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -9,6 +11,8 @@ import LoginBG from "../assets/images/login-bg.jpg";
 export default function RegisterPage() {
   const navigate = useNavigate();
   const { registerUser } = useAuth();
+
+  const [errorMessage, setErrorMessage] = useState<string | null>(null); // [OPSIONAL] Tambahkan state ini di atas jika ingin menampilkan error
 
   const [form, setForm] = useState({
     full_name: "",
@@ -30,15 +34,18 @@ export default function RegisterPage() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setErrorMessage(null);
 
     try {
+      // Biarkan AuthContext yang mengurus perpindahan halaman
       await registerUser(form);
-      navigate("/login");
-    } catch (err) {
-      console.error("Register failed:", err);
+    } catch (err: any) {
+      // Tangkap error dari Golang dan tampilkan (bisa pakai console.log, alert, atau state error)
+      console.error("Register failed:", err.message);
+      setErrorMessage(err.message); 
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (

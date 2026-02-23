@@ -16,6 +16,7 @@ import BookingSuccessPage from "../pages/BookingSuccessPage";
 import { BookingHistoryPage } from "../pages/BookingHistoryPage";
 import { PaymentMethodPage } from "../pages/payment/PaymentMethodPage";
 import { PaymentWaitingPage } from "../pages/payment/PaymentWaitingPage";
+import OTPVerificationPage from "../pages/OTPVerificationPage";
 
 export default function AppRouter() {
   return (
@@ -24,6 +25,7 @@ export default function AppRouter() {
       <Route path="/search" element={<SearchResultsPage />} /> {/* Route Baru */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/verify-otp" element={<OTPVerificationPage />} /> {/* [BARU] Route OTP */}
       <Route path="/booking" element={<BookingPage />} />
       <Route path="/booking/success" element={<BookingSuccessPage />} />
       <Route path="/history" element={<BookingHistoryPage />} />

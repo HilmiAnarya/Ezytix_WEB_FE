@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-refresh/only-export-components */
 import React, {
     createContext,
@@ -8,10 +10,6 @@ import React, {
 } from "react";
 import { api } from "../lib/axios";
 import { useNavigate, useLocation } from "react-router-dom";
-
-// =======================
-// User type dari backend
-// =======================
 
 export interface User {
     id: number;
@@ -32,41 +30,41 @@ interface RegisterPayload {
     password: string;
 }
 
-// =======================
-// AUTH CONTEXT TYPE
-// =======================
+// [BARU] Interface untuk Verify OTP
+interface VerifyOtpPayload {
+    email: string;
+    otp_code: string;
+}
 
 interface AuthContextValue {
     user: User | null;
     loading: boolean;
-
     login: (identifier: string, password: string) => Promise<void>;
     registerUser: (data: RegisterPayload) => Promise<void>;
     logout: () => Promise<void>;
     fetchUser: () => Promise<void>;
+    
+    // [BARU] Fungsi OTP
+    verifyOtp: (data: VerifyOtpPayload) => Promise<void>;
+    resendOtp: (email: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-// ====================================================
-// PROVIDER
-// ====================================================
-
-export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
-
     const navigate = useNavigate();
     const location = useLocation();
 
     // ========================
-    // FETCH USER FROM COOKIE
+    // FETCH USER (CEK LOGIN)
     // ========================
     const fetchUser = async () => {
         try {
-            const res = await api.get<User>("/auth/me", { withCredentials: true });
+            const res = await api.get("/auth/me", { withCredentials: true });
             setUser(res.data);
-        } catch {
+        } catch (err) {
             setUser(null);
         } finally {
             setLoading(false);
@@ -82,29 +80,30 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // ========================
     const login = async (identifier: string, password: string) => {
         setLoading(true);
-
         try {
-            await api.post(
-                "/auth/login",
-                { email: identifier, phone: identifier, password },
-                { withCredentials: true }
-            );
+            const res = await api.post("/auth/login", {
+                email: identifier.includes("@") ? identifier : undefined,
+                phone: !identifier.includes("@") ? identifier : undefined,
+                password,
+            });
 
-            const res = await api.get<User>("/auth/me", { withCredentials: true });
-            const loggedInUser = res.data;
+            setUser(res.data.user);
 
-            setUser(loggedInUser);
-
-            // Redirect berdasarkan role
-            if (loggedInUser.role === "admin") {
-                navigate("/admin/dashboard");
+            const savedPath = sessionStorage.getItem("lastPath");
+            if (savedPath) {
+                sessionStorage.removeItem("lastPath");
+                navigate(savedPath);
             } else {
-                const last = sessionStorage.getItem("lastPath") || "/";
-                navigate(last);
+                if (res.data.user.role === "admin") {
+                    navigate("/admin");
+                } else {
+                    navigate("/");
+                }
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error("Login failed:", err);
-            throw err;
+            // Tangkap pesan dari backend Golang agar terbaca di UI
+            throw new Error(err.response?.data?.error || "Gagal melakukan login.");
         } finally {
             setLoading(false);
         }
@@ -115,18 +114,53 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // ========================
     const registerUser = async (data: RegisterPayload) => {
         setLoading(true);
-
         try {
-            await api.post("/auth/register", data, {
-                withCredentials: true,
-            });
-
-            navigate("/login");
-        } catch (err) {
-            console.error("Register failed:", err);
-            throw err;
+            await api.post("/auth/register", data);
+            
+            // [DIUBAH] Jangan ke login, lemparkan user ke halaman verifikasi OTP
+            navigate(`/verify-otp?email=${encodeURIComponent(data.email)}`);
+        } catch (err: any) {
+            console.error("Registration failed:", err);
+            throw new Error(err.response?.data?.error || "Gagal mendaftarkan akun.");
         } finally {
             setLoading(false);
+        }
+    };
+
+    // ========================
+    // [BARU] VERIFY OTP
+    // ========================
+    const verifyOtp = async (data: VerifyOtpPayload) => {
+        setLoading(true);
+        try {
+            const res = await api.post("/auth/verify-otp", data);
+            setUser(res.data.user); // Otomatis set status user jadi login
+            
+            // Setelah verifikasi sukses, lempar ke halaman terakhir atau Home
+            const savedPath = sessionStorage.getItem("lastPath");
+            if (savedPath) {
+                sessionStorage.removeItem("lastPath");
+                navigate(savedPath);
+            } else {
+                navigate("/");
+            }
+        } catch (err: any) {
+            console.error("Verification failed:", err);
+            throw new Error(err.response?.data?.error || "Kode OTP salah atau kedaluwarsa.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // ========================
+    // [BARU] RESEND OTP
+    // ========================
+    const resendOtp = async (email: string) => {
+        try {
+            await api.post("/auth/resend-otp", { email });
+        } catch (err: any) {
+            console.error("Resend OTP failed:", err);
+            throw new Error(err.response?.data?.error || "Gagal mengirim ulang OTP.");
         }
     };
 
@@ -145,11 +179,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     // ========================
-    // SAVE LAST PATH
+    // SIMPAN LAST PATH URL
     // ========================
     useEffect(() => {
-        if (!location.pathname.startsWith("/login") && !location.pathname.startsWith("/register")) {
-            // [DIUBAH DI SINI] Gabungkan pathname dan search agar parameter URL tidak hilang
+        if (!location.pathname.startsWith("/login") && !location.pathname.startsWith("/register") && !location.pathname.startsWith("/verify-otp")) {
             const fullPath = location.pathname + location.search;
             sessionStorage.setItem("lastPath", fullPath);
         }
@@ -164,6 +197,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 registerUser,
                 logout,
                 fetchUser,
+                verifyOtp, // Export Verify
+                resendOtp, // Export Resend
             }}
         >
             {children}
@@ -171,11 +206,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     );
 };
 
-// =======================
-// HOOK
-// =======================
 export const useAuth = () => {
     const ctx = useContext(AuthContext);
-    if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
+    if (!ctx) throw new Error("useAuth must be used within AuthProvider");
     return ctx;
 };
