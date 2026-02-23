@@ -1,5 +1,3 @@
-// src/utils/downloadHelper.ts
-
 export const downloadBlob = (blob: Blob, filename: string) => {
     const url = window.URL.createObjectURL(blob);
 
